@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Unify Scan · Hall Entry</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: #262626;
+    --border2: #333;
+    --text: #f0efeb;
+    --text2: #9a9a9a;
+    --text3: #555;
+    --green: #4ade80;
+    --green-deep: #16a34a;
+    --green-bg: rgba(74,222,128,0.12);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.12);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.12);
+    --fd: 'Playfair Display', serif;
+    --fb: 'DM Sans', sans-serif;
+    --fm: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: var(--fb); background: var(--bg); color: var(--text); font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+  .screen { display: none; height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* Topbar */
+  .topbar {
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    flex-shrink: 0;
+  }
+  .wordmark { font-family: var(--fd); font-weight: 900; font-size: 20px; letter-spacing: -0.5px; }
+  .wordmark .dot { color: var(--green); }
+  .role-pill {
+    margin-left: 14px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    padding: 4px 10px;
+    background: var(--green-bg);
+    border-radius: 20px;
+  }
+  .topbar .meta {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: var(--green-bg);
+    color: var(--green);
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+  .status-pill.offline { background: var(--amber-bg); color: var(--amber); }
+  .dot-indicator { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+
+  /* ---------- SETUP ---------- */
+  .setup-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .setup-card {
+    width: 100%; max-width: 540px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+  }
+  .eyebrow {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 14px;
+  }
+  .setup-card h1 {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 34px;
+    letter-spacing: -1px;
+    line-height: 1.05;
+    margin-bottom: 8px;
+  }
+  .setup-card .sub {
+    color: var(--text2);
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  .field-group { margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .field-select, .field-input {
+    width: 100%;
+    height: 52px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--fb);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 0 16px;
+    outline: none;
+    appearance: none;
+  }
+  .field-select:focus, .field-input:focus { border-color: var(--green); }
+  .field-select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%239a9a9a' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+
+  .btn {
+    width: 100%;
+    height: 56px;
+    background: var(--green);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-family: var(--fb);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: transform 0.06s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn.secondary { background: transparent; border: 1px solid var(--border2); color: var(--text); }
+  .btn.ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn.amber { background: var(--amber); color: var(--bg); }
+
+  /* ---------- SCAN STATION ---------- */
+  .scan-wrap {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 0;
+  }
+
+  .scan-main {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .step {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .step.done { background: var(--green); }
+  .step.active { background: var(--green); }
+  .step.active::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.3);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
+  .step-head {
+    margin-bottom: 24px;
+  }
+  .step-head .num {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 80px;
+    letter-spacing: -3px;
+    line-height: 1;
+    color: var(--green);
+    opacity: 0.15;
+    position: absolute;
+  }
+  .step-head .num-wrap {
+    position: relative;
+    padding-top: 8px;
+    min-height: 80px;
+  }
+  .step-head h2 {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 40px;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .step-head p {
+    color: var(--text2);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 520px;
+  }
+
+  /* Scanner area */
+  .scanner-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .scan-visual {
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .scan-visual::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--green);
+    opacity: 0.2;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .scan-visual::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    border: 1px solid var(--green);
+    opacity: 0.1;
+    animation: pulse 2s ease-in-out infinite 0.5s;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.15; }
+    50% { transform: scale(1.08); opacity: 0; }
+  }
+  .scan-inner {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+  }
+  .scan-inner svg { width: 54px; height: 54px; }
+
+  .scan-field { flex: 1; }
+  .scan-field .label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+  .scan-input {
+    width: 100%;
+    height: 72px;
+    background: var(--surface2);
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--fm);
+    font-size: 26px;
+    font-weight: 600;
+    padding: 0 20px;
+    outline: none;
+    letter-spacing: 2px;
+  }
+  .scan-input.empty { border-color: var(--border2); color: var(--text3); font-family: var(--fb); font-size: 16px; font-weight: 400; letter-spacing: 0; }
+  .scan-hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  /* Student match result */
+  .match-card {
+    background: var(--green-bg);
+    border: 1px solid rgba(74,222,128,0.4);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 16px;
+  }
+  .match-check {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .match-info { flex: 1; }
+  .match-info .t {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--green);
+    margin-bottom: 4px;
+  }
+  .match-info .n {
+    font-family: var(--fd);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.3px;
+    margin-bottom: 2px;
+  }
+  .match-info .m {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .error-card {
+    background: var(--red-bg);
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #fca5a5;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .error-card svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--red); margin-top: 1px; }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+    margin-top: auto;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .scan-side {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .side-session {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-session .l {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text2);
+    margin-bottom: 4px;
+  }
+  .side-session .c {
+    font-family: var(--fm);
+    font-size: 13px;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+  .side-session .t {
+    font-family: var(--fd);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.3px;
+  }
+  .side-session .m {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .side-counters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 1px;
+  }
+  .counter-cell {
+    background: var(--surface);
+    padding: 16px;
+    text-align: center;
+  }
+  .counter-cell .n {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 32px;
+    letter-spacing: -0.8px;
+    line-height: 1;
+  }
+  .counter-cell .n.green { color: var(--green); }
+  .counter-cell .l {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-top: 6px;
+  }
+
+  .side-log {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+  }
+  .log-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .log-head .t {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text2);
+  }
+  .log-row {
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .log-row.extra { border-left: 2px solid var(--amber); }
+  .log-row .n {
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .log-row .m {
+    font-family: var(--fm);
+    font-size: 10px;
+    color: var(--green);
+  }
+  .log-row .time {
+    font-size: 10px;
+    color: var(--text3);
+  }
+  .log-row .extra-tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 20px;
+    background: var(--amber-bg);
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+
+  .side-foot {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .empty-log {
+    text-align: center;
+    padding: 32px 12px;
+    color: var(--text3);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* ---------- MODAL ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 100;
+  }
+  .modal-backdrop.active { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 460px;
+  }
+  .modal h2 {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.8px;
+    margin-bottom: 6px;
+  }
+  .modal p {
+    color: var(--text2);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .modal .field-input { margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions > * { flex: 1; }
+
+  /* ---------- COMPLETE ---------- */
+  .complete-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .complete-card { max-width: 520px; text-align: center; }
+  .check-big {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+  }
+  .complete-card h2 {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 42px;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .complete-card p {
+    color: var(--text2);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 10px;
+  }
+  .stat-box .n {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .stat-box .n.green { color: var(--green); }
+  .stat-box .n.amber { color: var(--amber); }
+  .stat-box .l {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-top: 8px;
+  }
+
+  .hidden { display: none !important; }
+
+  /* Scrollbars */
+  .side-log::-webkit-scrollbar, .scan-main::-webkit-scrollbar { width: 4px; }
+  .side-log::-webkit-scrollbar-thumb, .scan-main::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ========== SCREEN 1: SETUP ========== -->
+<div class="screen active" id="screen-setup">
+  <div class="topbar">
+    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
+    <div class="role-pill">Hall Entry</div>
+    <div class="meta">
+      <span id="clock-1">09:41</span>
+      <span class="status-pill"><span class="dot-indicator"></span>Firebase Online</span>
+    </div>
+  </div>
+
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="eyebrow">Invigilator Station · LASU Engineering</div>
+      <h1>Open the hall.</h1>
+      <p class="sub">This device links every student's matric number to the booklet they're issued. Once linked, the rest happens automatically.</p>
+
+      <div class="field-group">
+        <label class="field-label">Course</label>
+        <select class="field-select" id="course">
+          <option>MEE 351 — Engineering Thermodynamics</option>
+          <option>CPE 401 — Digital Systems Design</option>
+          <option>EEG 324 — Electromagnetic Fields</option>
+          <option>CVE 405 — Structural Analysis</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="field-group">
+          <label class="field-label">Session</label>
+          <select class="field-select">
+            <option>2025/2026 · First Semester</option>
+            <option>2025/2026 · Second Semester</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Hall</label>
+          <select class="field-select">
+            <option>ENG Main Auditorium</option>
+            <option>ENG Lecture Hall 2</option>
+            <option>ENG Drawing Studio</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Invigilator</label>
+        <select class="field-select">
+          <option>Mr. T. Adebowale</option>
+          <option>Dr. A. Ogunleye</option>
+          <option>Prof. K. Adeyemi</option>
+        </select>
+      </div>
+
+      <button class="btn" onclick="goTo('screen-scan')">Open Hall →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN 2: SCAN STATION ========== -->
+<div class="screen" id="screen-scan">
+  <div class="topbar">
+    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
+    <div class="role-pill">Hall Entry</div>
+    <div class="meta">
+      <span style="color: var(--text);">MEE 351</span>
+      <span id="clock-2">09:41</span>
+      <span class="status-pill" id="net-status"><span class="dot-indicator"></span>Firebase Online</span>
+    </div>
+  </div>
+
+  <div class="scan-wrap">
+    <div class="scan-main">
+      <div class="step-indicator">
+        <div class="step" id="step-1"></div>
+        <div class="step" id="step-2"></div>
+      </div>
+
+      <div class="step-head">
+        <div class="num-wrap">
+          <div class="num" id="step-num">01</div>
+          <h2 id="step-title">Scan student matric number.</h2>
+        </div>
+        <p id="step-desc">Ask the student to show their ID. Enter or scan the matric number to pull up their profile.</p>
+      </div>
+
+      <!-- STEP 1: Matric input -->
+      <div id="step-matric-section">
+        <div class="scanner-box">
+          <div class="scan-visual">
+            <div class="scan-inner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="14" rx="2"/>
+                <circle cx="9" cy="10" r="2"/>
+                <path d="M15 14h3M15 10h3M5 18h14"/>
+              </svg>
+            </div>
+          </div>
+          <div class="scan-field">
+            <div class="label">Matric Number</div>
+            <input
+              class="scan-input empty"
+              id="matric-input"
+              placeholder="Scan or type matric number..."
+              autofocus
+              oninput="onMatricInput()"
+              onkeydown="if(event.key==='Enter') lookupMatric()"
+            >
+            <div class="scan-hint">Scanner auto-submits on barcode read. For manual entry, press Enter.</div>
+          </div>
+        </div>
+
+        <div id="match-result"></div>
+
+        <div class="action-row">
+          <button class="btn secondary" onclick="clearMatric()">Clear</button>
+          <button class="btn" onclick="lookupMatric()">Look Up Student →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Booklet linking -->
+      <div id="step-booklet-section" class="hidden">
+        <div class="match-card">
+          <div class="match-check">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div class="match-info">
+            <div class="t">Student Verified</div>
+            <div class="n" id="matched-name">Chidinma Okafor</div>
+            <div class="m"><span id="matched-matric">190591089</span> · 400L · Computer Engineering</div>
+          </div>
+        </div>
+
+        <div class="scanner-box">
+          <div class="scan-visual">
+            <div class="scan-inner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="16" rx="2"/>
+                <path d="M7 8h10M7 12h10M7 16h6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="scan-field">
+            <div class="label">Booklet Serial Number</div>
+            <input
+              class="scan-input empty"
+              id="booklet-input"
+              placeholder="Scan booklet QR or type serial..."
+              oninput="onBookletInput()"
+              onkeydown="if(event.key==='Enter') linkBooklet()"
+            >
+            <div class="scan-hint">The number printed on every page corner of the booklet.</div>
+          </div>
+        </div>
+
+        <div id="booklet-error"></div>
+
+        <div class="action-row">
+          <button class="btn secondary" onclick="backToMatric()">← Different Student</button>
+          <button class="btn" onclick="linkBooklet()">Issue Booklet →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="scan-side">
+      <div class="side-session">
+        <div class="l">Active Session</div>
+        <div class="c">MEE 351</div>
+        <div class="t">Engineering Thermodynamics</div>
+        <div class="m">Main Auditorium · Started <span id="session-start">09:00</span></div>
+      </div>
+
+      <div class="side-counters">
+        <div class="counter-cell">
+          <div class="n green" id="c-students">0</div>
+          <div class="l">Students</div>
+        </div>
+        <div class="counter-cell">
+          <div class="n" id="c-extras">0</div>
+          <div class="l">Extra Sheets</div>
+        </div>
+      </div>
+
+      <div class="side-log">
+        <div class="log-head">
+          <span class="t">Issue Log</span>
+        </div>
+        <div id="log-list">
+          <div class="empty-log">No students yet. Scan the first matric number to begin.</div>
+        </div>
+      </div>
+
+      <div class="side-foot">
+        <button class="btn amber" onclick="openExtraModal()" id="extra-btn" disabled style="opacity: 0.5;">+ Issue Extra Sheet</button>
+        <button class="btn ghost" onclick="goTo('screen-complete')">Close Hall</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== EXTRA SHEET MODAL ========== -->
+<div class="modal-backdrop" id="modal-extra">
+  <div class="modal">
+    <div class="eyebrow">Mid-Exam Request</div>
+    <h2>Issue extra sheet.</h2>
+    <p>Student ran out of space. Enter their matric number and the serial on the extra booklet — it'll be linked to their main booklet automatically.</p>
+
+    <div class="field-group">
+      <label class="field-label">Student Matric</label>
+      <input class="field-input" id="extra-matric" placeholder="190591089">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Extra Booklet Serial</label>
+      <input class="field-input" id="extra-booklet" placeholder="LSU-ENG-M351-0892">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn amber" onclick="issueExtra()">Issue Extra</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== COMPLETE ========== -->
+<div class="screen" id="screen-complete">
+  <div class="topbar">
+    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
+    <div class="role-pill">Hall Entry</div>
+    <div class="meta">
+      <span id="clock-3">09:41</span>
+      <span class="status-pill"><span class="dot-indicator"></span>Hall Closed</span>
+    </div>
+  </div>
+
+  <div class="complete-wrap">
+    <div class="complete-card">
+      <div class="check-big">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <div class="eyebrow" style="text-align: center;">Hall Closed</div>
+      <h2>Session ended.</h2>
+      <p>Every booklet issued is now linked to a student in Firebase. When the lecturer marks and scans them, the scripts will route automatically.</p>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="n green" id="final-students">47</div>
+          <div class="l">Students</div>
+        </div>
+        <div class="stat-box">
+          <div class="n">47</div>
+          <div class="l">Booklets</div>
+        </div>
+        <div class="stat-box">
+          <div class="n amber" id="final-extras">4</div>
+          <div class="l">Extras</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn secondary" onclick="resetSession()">New Session</button>
+        <button class="btn" onclick="resetSession()">Back to Start</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- ROUTING ----------
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'screen-scan') {
+      setTimeout(() => document.getElementById('matric-input')?.focus(), 100);
+      updateStep();
+    }
+    if (id === 'screen-complete') {
+      document.getElementById('final-students').textContent = state.issued.length;
+      document.getElementById('final-extras').textContent = state.extras;
+    }
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal() { document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active')); }
+
+  // ---------- CLOCK ----------
+  function updateClocks() {
+    const now = new Date();
+    const s = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    ['clock-1','clock-2','clock-3'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = s; });
+  }
+  updateClocks(); setInterval(updateClocks, 30000);
+
+  // ---------- STATE ----------
+  const state = {
+    step: 1,
+    currentMatric: null,
+    currentStudent: null,
+    issued: [],
+    extras: 0,
+  };
+
+  // Mock student database (in production: Firestore lookup)
+  const studentDB = {
+    '190591089': { name: 'Chidinma Okafor', level: '400L', dept: 'Computer Engineering' },
+    '190591024': { name: 'Samuel Adeyinka', level: '400L', dept: 'Mechanical Engineering' },
+    '200591155': { name: 'Amaka Eze', level: '300L', dept: 'Electrical Engineering' },
+    '190591077': { name: 'Tunde Bakare', level: '400L', dept: 'Civil Engineering' },
+    '210591012': { name: 'Fatima Yusuf', level: '200L', dept: 'Computer Engineering' },
+  };
+
+  function updateStep() {
+    document.getElementById('step-1').className = state.step === 1 ? 'step active' : 'step done';
+    document.getElementById('step-2').className = state.step === 2 ? 'step active' : 'step';
+    document.getElementById('step-num').textContent = '0' + state.step;
+
+    if (state.step === 1) {
+      document.getElementById('step-title').textContent = 'Scan student matric number.';
+      document.getElementById('step-desc').textContent = 'Ask the student to show their ID. Enter or scan the matric number to pull up their profile.';
+      document.getElementById('step-matric-section').classList.remove('hidden');
+      document.getElementById('step-booklet-section').classList.add('hidden');
+    } else {
+      document.getElementById('step-title').textContent = 'Scan the booklet serial.';
+      document.getElementById('step-desc').textContent = 'Pick up the next booklet in the stack and scan the QR/serial on its corner. This locks the paper to the student.';
+      document.getElementById('step-matric-section').classList.add('hidden');
+      document.getElementById('step-booklet-section').classList.remove('hidden');
+      setTimeout(() => document.getElementById('booklet-input')?.focus(), 100);
+    }
+  }
+
+  // ---------- STEP 1: Matric ----------
+  function onMatricInput() {
+    const v = document.getElementById('matric-input').value;
+    const el = document.getElementById('matric-input');
+    if (v) el.classList.remove('empty');
+    else el.classList.add('empty');
+    document.getElementById('match-result').innerHTML = '';
+  }
+
+  function clearMatric() {
+    document.getElementById('matric-input').value = '';
+    document.getElementById('matric-input').classList.add('empty');
+    document.getElementById('match-result').innerHTML = '';
+    document.getElementById('matric-input').focus();
+  }
+
+  function lookupMatric() {
+    const matric = document.getElementById('matric-input').value.trim();
+    if (!matric) return;
+
+    // Check duplicate
+    if (state.issued.find(i => i.matric === matric)) {
+      document.getElementById('match-result').innerHTML = `
+        <div class="error-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <div>
+            <strong>Already checked in.</strong> This student has already been issued a booklet today. Use "Issue Extra Sheet" if they need more paper.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const s = studentDB[matric];
+    if (!s) {
+      document.getElementById('match-result').innerHTML = `
+        <div class="error-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <div>
+            <strong>No student found.</strong> Check the matric number and try again. If the student is registered but not on file, use manual override.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    state.currentMatric = matric;
+    state.currentStudent = s;
+    document.getElementById('matched-name').textContent = s.name;
+    document.getElementById('matched-matric').textContent = matric;
+    document.querySelector('#matched-matric').nextSibling; // noop
+    document.querySelector('.match-info .m').innerHTML = `${matric} · ${s.level} · ${s.dept}`;
+
+    state.step = 2;
+    updateStep();
+  }
+
+  function backToMatric() {
+    state.step = 1;
+    state.currentMatric = null;
+    state.currentStudent = null;
+    document.getElementById('booklet-input').value = '';
+    document.getElementById('booklet-input').classList.add('empty');
+    document.getElementById('booklet-error').innerHTML = '';
+    updateStep();
+    clearMatric();
+  }
+
+  // ---------- STEP 2: Booklet ----------
+  function onBookletInput() {
+    const v = document.getElementById('booklet-input').value;
+    const el = document.getElementById('booklet-input');
+    if (v) el.classList.remove('empty');
+    else el.classList.add('empty');
+    document.getElementById('booklet-error').innerHTML = '';
+  }
+
+  function linkBooklet() {
+    const booklet = document.getElementById('booklet-input').value.trim();
+    if (!booklet) return;
+
+    // Check duplicate booklet
+    if (state.issued.find(i => i.booklet === booklet)) {
+      document.getElementById('booklet-error').innerHTML = `
+        <div class="error-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <div><strong>Booklet already issued.</strong> This serial is linked to another student. Pick up the next booklet in the stack.</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Record (in production: writes to Firestore /booklets collection)
+    const record = {
+      matric: state.currentMatric,
+      name: state.currentStudent.name,
+      booklet: booklet,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      extra: false,
+    };
+    state.issued.unshift(record);
+
+    renderLog();
+    updateCounters();
+
+    // Reset for next student
+    state.step = 1;
+    state.currentMatric = null;
+    state.currentStudent = null;
+    document.getElementById('booklet-input').value = '';
+    document.getElementById('booklet-input').classList.add('empty');
+    document.getElementById('matric-input').value = '';
+    document.getElementById('matric-input').classList.add('empty');
+    document.getElementById('match-result').innerHTML = '';
+    document.getElementById('booklet-error').innerHTML = '';
+    updateStep();
+
+    // Enable extra sheet button once at least one student is checked in
+    const extraBtn = document.getElementById('extra-btn');
+    extraBtn.disabled = false;
+    extraBtn.style.opacity = '1';
+  }
+
+  // ---------- EXTRA SHEETS ----------
+  function openExtraModal() {
+    if (!state.issued.length) return;
+    document.getElementById('extra-matric').value = '';
+    document.getElementById('extra-booklet').value = '';
+    openModal('modal-extra');
+  }
+
+  function issueExtra() {
+    const matric = document.getElementById('extra-matric').value.trim();
+    const booklet = document.getElementById('extra-booklet').value.trim();
+    if (!matric || !booklet) return;
+
+    const main = state.issued.find(i => i.matric === matric && !i.extra);
+    if (!main) {
+      alert('That student has not been issued a main booklet yet.');
+      return;
+    }
+
+    state.issued.unshift({
+      matric,
+      name: main.name,
+      booklet,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      extra: true,
+      parentBooklet: main.booklet,
+    });
+    state.extras++;
+    closeModal();
+    renderLog();
+    updateCounters();
+  }
+
+  // ---------- LOG / COUNTERS ----------
+  function renderLog() {
+    const list = document.getElementById('log-list');
+    if (!state.issued.length) {
+      list.innerHTML = '<div class="empty-log">No students yet. Scan the first matric number to begin.</div>';
+      return;
+    }
+    list.innerHTML = state.issued.slice(0, 50).map(i => `
+      <div class="log-row ${i.extra ? 'extra' : ''}">
+        <div>
+          <div class="n">${i.name}${i.extra ? ' <span class="extra-tag">Extra</span>' : ''}</div>
+          <div class="m">${i.matric} · ${i.booklet}</div>
+        </div>
+        <div class="time">${i.time}</div>
+      </div>
+    `).join('');
+  }
+
+  function updateCounters() {
+    const uniqueStudents = new Set(state.issued.filter(i => !i.extra).map(i => i.matric));
+    document.getElementById('c-students').textContent = uniqueStudents.size;
+    document.getElementById('c-extras').textContent = state.extras;
+  }
+
+  function resetSession() {
+    state.step = 1;
+    state.currentMatric = null;
+    state.currentStudent = null;
+    state.issued = [];
+    state.extras = 0;
+    document.getElementById('matric-input').value = '';
+    document.getElementById('booklet-input').value = '';
+    renderLog();
+    updateCounters();
+    goTo('screen-setup');
+  }
+</script>
+
+</body>
+</html>
