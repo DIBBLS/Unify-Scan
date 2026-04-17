@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Scripts · Unify</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f8f7f3;
+    --border: #e0deda;
+    --border-soft: #ebe9e4;
+    --text: #0a0a0a;
+    --text2: #555;
+    --text3: #999;
+    --green: #4ade80;
+    --green-deep: #16a34a;
+    --green-bg: rgba(74,222,128,0.1);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.1);
+    --red: #dc2626;
+    --red-bg: rgba(220,38,38,0.08);
+    --fd: 'Playfair Display', serif;
+    --fb: 'DM Sans', sans-serif;
+    --fm: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--fb);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Nav */
+  .site-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .wordmark { font-family: var(--fd); font-weight: 900; font-size: 20px; letter-spacing: -0.5px; }
+  .wordmark .dot { color: var(--green); }
+  .nav-tabs { display: flex; gap: 4px; margin-left: 12px; }
+  .nav-tab { padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; }
+  .nav-tab.active { background: var(--surface2); color: var(--text); }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #4ade80, #16a34a); color: #0a0a0a; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  .breadcrumb {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .breadcrumb a { color: var(--green-deep); text-decoration: none; cursor: pointer; }
+
+  .page-head { margin-bottom: 28px; }
+  .page-head h1 {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 44px; letter-spacing: -1.5px; line-height: 1.05;
+    margin-bottom: 8px;
+  }
+  .page-head p {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 620px;
+  }
+
+  /* ---------- LIST ---------- */
+  .scan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .scan-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 56px 1fr auto auto;
+    gap: 20px;
+    align-items: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.06s ease;
+  }
+  .scan-card:hover { border-color: #c9c6bd; }
+  .scan-card:active { transform: scale(0.997); }
+  .scan-card.new { border-color: rgba(74,222,128,0.4); background: linear-gradient(180deg, var(--surface) 0%, rgba(74,222,128,0.03) 100%); }
+
+  .scan-icon {
+    width: 56px; height: 70px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scan-icon::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 8px; right: 8px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 1px;
+  }
+  .scan-icon::after {
+    content: "";
+    position: absolute;
+    top: 22px; left: 8px; right: 8px; bottom: 8px;
+    background: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 1px, transparent 1px, transparent 5px);
+  }
+
+  .scan-info .course-code {
+    font-family: var(--fm);
+    font-size: 11px;
+    color: var(--green-deep);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .scan-info .course-title {
+    font-family: var(--fd); font-weight: 700;
+    font-size: 19px; letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+  .scan-info .course-meta {
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .scan-info .course-meta .sep { color: var(--border); }
+
+  .scan-score { text-align: right; }
+  .scan-score .n {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 28px; letter-spacing: -0.5px; line-height: 1;
+  }
+  .scan-score .n.good { color: var(--green-deep); }
+  .scan-score .n.mid { color: var(--amber); }
+  .scan-score .n.low { color: var(--red); }
+  .scan-score .l {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text3);
+    margin-top: 6px;
+  }
+  .scan-arrow { color: var(--text3); width: 20px; height: 20px; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    text-transform: uppercase;
+  }
+  .tag.green { background: var(--green-bg); border-color: rgba(74,222,128,0.3); color: var(--green-deep); }
+  .tag.amber { background: var(--amber-bg); border-color: rgba(251,191,36,0.3); color: #b45309; }
+  .tag .dot-sm { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* ---------- VIEWER ---------- */
+  .viewer { display: none; }
+  .viewer.active { display: block; }
+  .list-view.hidden { display: none; }
+
+  .viewer-head {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+  }
+  .viewer-head .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-family: var(--fb);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+  .viewer-head .back:hover { color: var(--text); }
+  .viewer-head h2 {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 30px; letter-spacing: -1px; line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .viewer-head .meta-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    font-size: 12px; color: var(--text2);
+    margin-top: 8px;
+  }
+
+  .viewer-score {
+    text-align: right;
+    padding-left: 24px;
+    border-left: 1px solid var(--border);
+  }
+  .viewer-score .eyebrow {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .viewer-score .n {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 52px; letter-spacing: -2px; line-height: 1;
+    color: var(--green-deep);
+  }
+  .viewer-score .denom {
+    font-size: 14px;
+    color: var(--text3);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+  .viewer-score .grade-tag {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 10px;
+    background: var(--green-bg);
+    border: 1px solid rgba(74,222,128,0.3);
+    color: var(--green-deep);
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .viewer-body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 860px) {
+    .viewer-body { grid-template-columns: 1fr; }
+    .thumbs-rail { flex-direction: row !important; overflow-x: auto; max-height: none !important; }
+  }
+
+  .thumbs-rail {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: flex-start;
+    max-height: 760px;
+    overflow-y: auto;
+  }
+  .thumb-group-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 4px 4px 2px;
+    margin-top: 4px;
+  }
+  .thumb-group-label:first-child { margin-top: 0; }
+
+  .thumb {
+    background: var(--surface2);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    transition: border-color 0.12s ease;
+  }
+  .thumb:hover { background: var(--border-soft); }
+  .thumb.active { border-color: var(--green); background: var(--surface); }
+  .thumb.extra { background: rgba(251,191,36,0.06); }
+  .thumb .mini {
+    width: 34px; height: 44px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .thumb .mini::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    background: repeating-linear-gradient(to bottom, #d0cdc4 0, #d0cdc4 1px, transparent 1px, transparent 3px);
+  }
+  .thumb-info { flex: 1; min-width: 0; }
+  .thumb-info .l {
+    font-size: 12px; font-weight: 500;
+    color: var(--text); margin-bottom: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .thumb-info .s { font-size: 10px; color: var(--text3); }
+
+  .page-viewer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .pv-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+  .pv-title {
+    font-family: var(--fd); font-weight: 700;
+    font-size: 18px; letter-spacing: -0.3px;
+  }
+  .pv-nav {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .pv-nav button {
+    width: 36px; height: 36px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+  }
+  .pv-nav button:hover { background: var(--surface2); }
+  .pv-nav button:disabled { color: var(--text3); cursor: not-allowed; }
+  .pv-nav .count {
+    padding: 0 12px;
+    font-family: var(--fm);
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* Paper */
+  .paper {
+    background: linear-gradient(180deg, #fdfcf8 0%, #f8f6ef 100%);
+    aspect-ratio: 210 / 297;
+    max-width: 560px;
+    margin: 0 auto;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 0 0 1px var(--border);
+    position: relative;
+    padding: 7%;
+    overflow: hidden;
+  }
+  .paper-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #d8d4c8;
+  }
+  .paper-heading {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 11px; color: #1a1a1a;
+    margin-bottom: 3px;
+  }
+  .paper-sub {
+    font-size: 9px; color: #777; font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .paper-qr {
+    width: 36px; height: 36px;
+    background:
+      linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+      linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
+      linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+    border: 2px solid #1a1a1a;
+    flex-shrink: 0;
+  }
+  .booklet-tag {
+    position: absolute;
+    bottom: 4%; left: 6%;
+    font-family: var(--fm);
+    font-size: 7px;
+    color: #999;
+    letter-spacing: 0.5px;
+  }
+  .paper-body { font-size: 10px; color: #2a2a2a; line-height: 1.6; }
+  .paper-question {
+    font-weight: 600;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    color: #111;
+  }
+  .paper-text { color: #444; margin-bottom: 8px; }
+  .handwriting {
+    font-family: 'Kalam', 'Caveat', cursive;
+    font-style: italic;
+    color: #1a3a8c;
+    display: block;
+    margin: 6px 0;
+    font-size: 11px;
+  }
+  .red-circle {
+    display: inline-block;
+    border: 1.5px solid var(--red);
+    border-radius: 50%;
+    padding: 1px 6px;
+    font-family: var(--fd);
+    font-weight: 700;
+    font-style: italic;
+    color: var(--red);
+    font-size: 11px;
+    transform: rotate(-3deg);
+  }
+  .red-x {
+    color: var(--red);
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 16px;
+    font-style: italic;
+    line-height: 0.6;
+  }
+  .red-score {
+    position: absolute;
+    font-family: var(--fd);
+    font-weight: 900;
+    font-style: italic;
+    color: var(--red);
+    font-size: 14px;
+    transform: rotate(-4deg);
+  }
+  .cover-score {
+    position: absolute;
+    top: 6%; right: 8%;
+    font-family: var(--fd);
+    font-weight: 900;
+    font-style: italic;
+    color: var(--red);
+    font-size: 32px;
+    transform: rotate(-10deg);
+    letter-spacing: -2px;
+    border: 3px solid var(--red);
+    padding: 4px 12px;
+  }
+  .extra-stamp {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--amber);
+    color: var(--text);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+
+  .callouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .callout {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .callout .ctitle {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .callout .cbody {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .callout.amber { background: var(--amber-bg); border-color: rgba(251,191,36,0.3); }
+  .callout.amber .ctitle { color: #b45309; }
+  .callout.amber .cbody { color: #78350f; }
+
+  .viewer-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: var(--fb);
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn.primary { background: var(--text); color: #f5f4f0; }
+  .btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn.green { background: var(--green); color: var(--text); font-weight: 700; }
+  .btn:hover { opacity: 0.9; }
+
+  .thumbs-rail::-webkit-scrollbar { width: 4px; }
+  .thumbs-rail::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="wordmark">Unify<span class="dot">.</span></div>
+  <div class="nav-tabs">
+    <div class="nav-tab">Dashboard</div>
+    <div class="nav-tab">Courses</div>
+    <div class="nav-tab">Grade Planner</div>
+    <div class="nav-tab active">My Scripts</div>
+    <div class="nav-tab">Blitz</div>
+  </div>
+  <div class="nav-right">
+    <div class="avatar">CO</div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- LIST -->
+  <div class="list-view" id="list-view">
+    <div class="breadcrumb"><a>Profile</a> · My Scripts</div>
+    <div class="page-head">
+      <h1>Your marked scripts.</h1>
+      <p>Every paper you've written, scanned by your lecturer. See what you got — and exactly where you lost marks.</p>
+    </div>
+
+    <div class="scan-list" id="scan-list"></div>
+
+    <div style="padding: 20px; background: var(--surface2); border: 1px dashed var(--border); border-radius: 12px; text-align: center; font-size: 13px; color: var(--text2);">
+      Your 200L and 300L papers are being digitised as lecturers scan the archives. More scripts will appear here soon.
+    </div>
+  </div>
+
+  <!-- VIEWER -->
+  <div class="viewer" id="viewer">
+    <div class="breadcrumb"><a onclick="showList()">My Scripts</a> · <span id="vc-code">MEE 351</span></div>
+
+    <div class="viewer-head">
+      <div>
+        <button class="back" onclick="showList()">← Back to all scripts</button>
+        <h2 id="vc-title">Engineering Thermodynamics</h2>
+        <div class="meta-row">
+          <span><strong style="color: var(--text);" id="vc-code-2">MEE 351</strong></span>
+          <span>·</span>
+          <span id="vc-sess">2025/2026 First Semester</span>
+          <span>·</span>
+          <span id="vc-date">Marked 11 Apr 2026</span>
+          <span>·</span>
+          <span id="vc-lecturer">Prof. K. Adeyemi</span>
+          <span id="vc-extra-badge"></span>
+        </div>
+      </div>
+      <div class="viewer-score">
+        <div class="eyebrow">Final Score</div>
+        <div class="n" id="vc-score">72</div>
+        <div class="denom">/ 100</div>
+        <div class="grade-tag" id="vc-grade">B · Very Good</div>
+      </div>
+    </div>
+
+    <div class="viewer-body">
+      <div class="thumbs-rail" id="thumbs-rail"></div>
+
+      <div class="page-viewer">
+        <div class="pv-controls">
+          <div class="pv-title" id="pv-title">Cover Page</div>
+          <div class="pv-nav">
+            <button onclick="prevPage()" id="prev-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <span class="count"><span id="pv-current">1</span> / <span id="pv-total">6</span></span>
+            <button onclick="nextPage()" id="next-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="paper" id="paper-stage"></div>
+
+        <div class="callouts" id="callouts"></div>
+
+        <div class="viewer-actions">
+          <button class="btn secondary">⬇ Download PDF</button>
+          <button class="btn secondary">⚑ Request Review</button>
+          <button class="btn green" style="margin-left: auto;">Study weak topics →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const scripts = [
+    {
+      id: 'mee351',
+      code: 'MEE 351',
+      title: 'Engineering Thermodynamics',
+      session: '2025/2026 First Semester',
+      date: 'Marked 11 Apr 2026',
+      lecturer: 'Prof. K. Adeyemi',
+      booklet: 'LSU-M351-0417',
+      score: 72,
+      grade: 'B · Very Good',
+      grade_class: 'good',
+      hasExtra: false,
+      new: true,
+      pages: 16,
+      page_data: [
+        { label: 'Cover', isCover: true },
+        { label: 'Q1 — First Law', marks: '18/20', ok: true },
+        { label: 'Q2 — Entropy', marks: '13/20', ok: true },
+        { label: 'Q3 — Carnot Cycle', marks: '9/20', ok: false, note: 'Lost marks on Carnot efficiency derivation' },
+        { label: 'Q4 — Heat Engines', marks: '16/20', ok: true },
+        { label: 'Q5 — Refrigeration', marks: '16/20', ok: true },
+      ]
+    },
+    {
+      id: 'cpe401',
+      code: 'CPE 401',
+      title: 'Digital Systems Design',
+      session: '2025/2026 First Semester',
+      date: 'Marked 08 Apr 2026',
+      lecturer: 'Dr. A. Ogunleye',
+      booklet: 'LSU-C401-0234',
+      score: 58,
+      grade: 'C · Credit',
+      grade_class: 'mid',
+      hasExtra: true,
+      extraPages: 4,
+      pages: 16,
+      page_data: [
+        { label: 'Cover', isCover: true },
+        { label: 'Q1 — Boolean Algebra', marks: '14/20', ok: true },
+        { label: 'Q2 — K-Maps', marks: '11/20', ok: true },
+        { label: 'Q3 — Flip-Flops', marks: '7/20', ok: false, note: 'D flip-flop timing incorrect' },
+        { label: 'Q4 — State Machines', marks: '13/20', ok: true },
+        { label: 'Q5 — Counters', marks: '13/20', ok: true },
+        { label: 'Extra p1 — Q3 cont.', marks: null, ok: true, isExtraPage: true, extraBooklet: 'LSU-C401-0889' },
+        { label: 'Extra p2 — Q3 cont.', marks: null, ok: true, isExtraPage: true, extraBooklet: 'LSU-C401-0889' },
+      ]
+    },
+    {
+      id: 'eeg324',
+      code: 'EEG 324',
+      title: 'Electromagnetic Fields',
+      session: '2025/2026 First Semester',
+      date: 'Marked 05 Apr 2026',
+      lecturer: 'Dr. O. Akintola',
+      booklet: 'LSU-E324-0156',
+      score: 81,
+      grade: 'A · Excellent',
+      grade_class: 'good',
+      hasExtra: false,
+      pages: 16,
+      page_data: []
+    },
+    {
+      id: 'gns301',
+      code: 'GNS 301',
+      title: 'Technical Writing',
+      session: '2024/2025 Second Semester',
+      date: 'Marked 02 Oct 2025',
+      lecturer: 'Mrs. F. Bello',
+      booklet: 'LSU-G301-0087',
+      score: 44,
+      grade: 'D · Pass',
+      grade_class: 'low',
+      hasExtra: false,
+      pages: 8,
+      page_data: []
+    },
+  ];
+
+  // ---------- LIST ----------
+  function renderList() {
+    const list = document.getElementById('scan-list');
+    list.innerHTML = scripts.map(s => {
+      const tags = [];
+      if (s.new) tags.push(`<span class="tag green"><span class="dot-sm"></span>NEW</span>`);
+      if (s.hasExtra) tags.push(`<span class="tag amber">+${s.extraPages} extra pages</span>`);
+      return `
+        <div class="scan-card ${s.new ? 'new' : ''}" onclick="openScript('${s.id}')">
+          <div class="scan-icon"></div>
+          <div class="scan-info">
+            <div class="course-code">${s.code}</div>
+            <div class="course-title">${s.title}</div>
+            <div class="course-meta">
+              <span>${s.date}</span>
+              <span class="sep">·</span>
+              <span>${s.pages}${s.hasExtra ? '+' + s.extraPages : ''} pages</span>
+              <span class="sep">·</span>
+              <span>${s.lecturer}</span>
+              ${tags.length ? '<span class="sep">·</span>' + tags.join(' ') : ''}
+            </div>
+          </div>
+          <div class="scan-score">
+            <div class="n ${s.grade_class}">${s.score}</div>
+            <div class="l">/ 100</div>
+          </div>
+          <svg class="scan-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ---------- VIEWER ----------
+  let currentScript = null;
+  let currentPage = 0;
+
+  function openScript(id) {
+    currentScript = scripts.find(s => s.id === id);
+    if (!currentScript) return;
+
+    if (!currentScript.page_data.length) {
+      currentScript.page_data = [
+        { label: 'Cover', isCover: true },
+        ...Array.from({ length: Math.min(5, currentScript.pages - 1) }, (_, i) => ({
+          label: `Q${i + 1}`,
+          marks: `${Math.floor(Math.random() * 10) + 8}/20`,
+          ok: Math.random() > 0.3
+        }))
+      ];
+    }
+
+    document.getElementById('vc-code').textContent = currentScript.code;
+    document.getElementById('vc-code-2').textContent = currentScript.code;
+    document.getElementById('vc-title').textContent = currentScript.title;
+    document.getElementById('vc-sess').textContent = currentScript.session;
+    document.getElementById('vc-date').textContent = currentScript.date;
+    document.getElementById('vc-lecturer').textContent = currentScript.lecturer;
+    document.getElementById('vc-score').textContent = currentScript.score;
+    document.getElementById('vc-score').className = 'n ' + currentScript.grade_class;
+
+    const extraBadge = document.getElementById('vc-extra-badge');
+    if (currentScript.hasExtra) {
+      extraBadge.innerHTML = ` · <span class="tag amber" style="font-size: 10px;">+${currentScript.extraPages} extra pages</span>`;
+    } else {
+      extraBadge.innerHTML = '';
+    }
+
+    const gradeTag = document.getElementById('vc-grade');
+    gradeTag.textContent = currentScript.grade;
+    gradeTag.style.background = '';
+    gradeTag.style.borderColor = '';
+    gradeTag.style.color = '';
+    document.getElementById('vc-score').style.color = '';
+    if (currentScript.grade_class === 'mid') {
+      gradeTag.style.background = 'var(--amber-bg)';
+      gradeTag.style.borderColor = 'rgba(251,191,36,0.3)';
+      gradeTag.style.color = '#b45309';
+      document.getElementById('vc-score').style.color = 'var(--amber)';
+    } else if (currentScript.grade_class === 'low') {
+      gradeTag.style.background = 'var(--red-bg)';
+      gradeTag.style.borderColor = 'rgba(220,38,38,0.3)';
+      gradeTag.style.color = 'var(--red)';
+      document.getElementById('vc-score').style.color = 'var(--red)';
+    }
+
+    document.getElementById('pv-total').textContent = currentScript.page_data.length;
+    currentPage = 0;
+    renderThumbs();
+    renderCurrentPage();
+    document.getElementById('list-view').classList.add('hidden');
+    document.getElementById('viewer').classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function showList() {
+    document.getElementById('list-view').classList.remove('hidden');
+    document.getElementById('viewer').classList.remove('active');
+    window.scrollTo(0, 0);
+  }
+
+  function renderThumbs() {
+    const rail = document.getElementById('thumbs-rail');
+    const mainPages = currentScript.page_data.filter(p => !p.isExtraPage);
+    const extraPages = currentScript.page_data.filter(p => p.isExtraPage);
+
+    let html = '';
+    html += '<div class="thumb-group-label">Main Booklet</div>';
+    html += mainPages.map(p => {
+      const i = currentScript.page_data.indexOf(p);
+      return `
+        <div class="thumb ${i === currentPage ? 'active' : ''}" onclick="jumpTo(${i})">
+          <div class="mini"></div>
+          <div class="thumb-info">
+            <div class="l">${p.label}</div>
+            <div class="s">${p.marks || (p.isCover ? 'Cover' : '—')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (extraPages.length) {
+      html += '<div class="thumb-group-label">Extra Sheets</div>';
+      html += extraPages.map(p => {
+        const i = currentScript.page_data.indexOf(p);
+        return `
+          <div class="thumb extra ${i === currentPage ? 'active' : ''}" onclick="jumpTo(${i})">
+            <div class="mini"></div>
+            <div class="thumb-info">
+              <div class="l">${p.label}</div>
+              <div class="s">${p.extraBooklet || 'Extra'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    rail.innerHTML = html;
+  }
+
+  function renderCurrentPage() {
+    const p = currentScript.page_data[currentPage];
+    document.getElementById('pv-title').textContent = p.label;
+    document.getElementById('pv-current').textContent = currentPage + 1;
+    document.getElementById('prev-btn').disabled = currentPage === 0;
+    document.getElementById('next-btn').disabled = currentPage === currentScript.page_data.length - 1;
+
+    document.getElementById('paper-stage').innerHTML = renderPaperFor(p);
+    renderThumbs();
+
+    const callouts = document.getElementById('callouts');
+    const items = [];
+    if (p.marks) items.push(`<div class="callout"><div class="ctitle">Score on this page</div><div class="cbody">${p.marks}</div></div>`);
+    if (p.note) items.push(`<div class="callout"><div class="ctitle">What you missed</div><div class="cbody">${p.note}</div></div>`);
+    if (p.isExtraPage) items.push(`<div class="callout amber"><div class="ctitle">Extra Sheet</div><div class="cbody">You requested this extra booklet mid-exam. It's linked to your main script.</div></div>`);
+    if (p.isCover) items.push(`<div class="callout"><div class="ctitle">Final score</div><div class="cbody">${currentScript.score} / 100 — ${currentScript.grade}</div></div>`);
+    callouts.innerHTML = items.join('');
+  }
+
+  function renderPaperFor(p) {
+    if (p.isCover) {
+      return `
+        <div class="cover-score">${currentScript.score}/100</div>
+        <div class="paper-top">
+          <div>
+            <div class="paper-heading">LAGOS STATE UNIVERSITY</div>
+            <div class="paper-sub">Faculty of Engineering · Final Examination</div>
+          </div>
+          <div class="paper-qr"></div>
+        </div>
+        <div class="paper-body">
+          <div style="font-family: var(--fd); font-weight: 700; font-size: 13px; margin-bottom: 14px; color: #111;">
+            ${currentScript.code} — ${currentScript.title}
+          </div>
+          <div class="paper-text"><strong>Session:</strong> ${currentScript.session}</div>
+          <div class="paper-text"><strong>Student:</strong> Chidinma Okafor</div>
+          <div class="paper-text"><strong>Matric No.:</strong> 190591089</div>
+          <div class="paper-text"><strong>Level:</strong> 400</div>
+          <div class="paper-text" style="margin-top: 18px; color: #666;"><em>Answer any FIVE (5) questions. Time allowed: 3 hours.</em></div>
+          <div class="paper-text" style="margin-top: 24px; padding-top: 14px; border-top: 1px dashed #ccc; color: #666;"><strong>Total Marks:</strong> 100</div>
+        </div>
+        <div class="booklet-tag">${currentScript.booklet} · COVER</div>
+      `;
+    }
+    const correct = p.ok;
+    const tag = p.isExtraPage ? (p.extraBooklet + ' · extra') : (currentScript.booklet + ' · p' + (currentPage));
+    return `
+      ${p.isExtraPage ? '<div class="extra-stamp">Extra Sheet</div>' : ''}
+      <div class="paper-top">
+        <div>
+          <div class="paper-heading">${currentScript.code}</div>
+          <div class="paper-sub">${p.label}</div>
+        </div>
+        <div class="paper-qr"></div>
+      </div>
+      <div class="paper-body">
+        <div class="paper-question">${p.label}</div>
+        <div class="paper-text">Derive the expression for thermal efficiency of a Carnot cycle operating between two reservoirs...</div>
+        <div class="handwriting" style="margin-top: 12px;">Carnot efficiency depends only on temperatures of the reservoirs:</div>
+        <div class="handwriting" style="font-family: var(--fm); font-style: normal; font-size: 10px;">η = 1 − T_c / T_h</div>
+        ${correct ? `
+          <div class="handwriting">Substituting values: T_h = 600K, T_c = 300K</div>
+          <div class="handwriting" style="font-family: var(--fm); font-style: normal; font-size: 10px;">η = 1 − 300/600 = 0.5 = 50%</div>
+          <span class="red-circle" style="position: absolute; top: 22%; right: 14%;">✓</span>
+          ${p.marks ? `<div class="red-score" style="bottom: 14%; right: 10%;">${p.marks}</div>` : ''}
+        ` : `
+          <div class="handwriting">But wait, I think Carnot efficiency also depends on the working fluid...</div>
+          <span class="red-x" style="position: absolute; top: 54%; right: 22%;">✗</span>
+          <div style="position: absolute; bottom: 30%; right: 10%; color: var(--red); font-family: var(--fd); font-style: italic; font-size: 10px; max-width: 160px; text-align: right; transform: rotate(-2deg);">
+            No! Carnot is independent<br>of working fluid. See Ch.5.
+          </div>
+          ${p.marks ? `<div class="red-score" style="bottom: 14%; right: 10%;">${p.marks}</div>` : ''}
+        `}
+      </div>
+      <div class="booklet-tag">${tag}</div>
+    `;
+  }
+
+  function prevPage() { if (currentPage > 0) { currentPage--; renderCurrentPage(); } }
+  function nextPage() { if (currentPage < currentScript.page_data.length - 1) { currentPage++; renderCurrentPage(); } }
+  function jumpTo(i) { currentPage = i; renderCurrentPage(); }
+
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('viewer').classList.contains('active')) return;
+    if (e.key === 'ArrowLeft') prevPage();
+    if (e.key === 'ArrowRight') nextPage();
+    if (e.key === 'Escape') showList();
+  });
+
+  renderList();
+</script>
+
+</body>
+</html>
