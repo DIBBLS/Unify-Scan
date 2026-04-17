@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Unify Scan · Lecturer Station</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: #262626;
+    --border2: #333;
+    --text: #f0efeb;
+    --text2: #9a9a9a;
+    --text3: #555;
+    --green: #4ade80;
+    --green-deep: #16a34a;
+    --green-bg: rgba(74,222,128,0.12);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.12);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.12);
+    --fd: 'Playfair Display', serif;
+    --fb: 'DM Sans', sans-serif;
+    --fm: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: var(--fb); background: var(--bg); color: var(--text); font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+  .screen { display: none; height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* Topbar */
+  .topbar {
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    flex-shrink: 0;
+  }
+  .wordmark { font-family: var(--fd); font-weight: 900; font-size: 20px; letter-spacing: -0.5px; }
+  .wordmark .dot { color: var(--green); }
+  .role-pill {
+    margin-left: 14px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    padding: 4px 10px;
+    background: var(--green-bg);
+    border-radius: 20px;
+  }
+  .topbar .meta {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: var(--green-bg);
+    color: var(--green);
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+  .status-pill.buffer { background: var(--amber-bg); color: var(--amber); }
+  .dot-indicator { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+
+  /* ---------- SETUP ---------- */
+  .setup-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .setup-card {
+    width: 100%; max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+  }
+  .eyebrow {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 14px;
+  }
+  .setup-card h1 {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 38px; letter-spacing: -1px; line-height: 1.05;
+    margin-bottom: 8px;
+  }
+  .setup-card .sub {
+    color: var(--text2); font-size: 14px; line-height: 1.5;
+    margin-bottom: 28px;
+  }
+  .info-callout {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--text2);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.5;
+  }
+  .info-callout svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--green); margin-top: 2px; }
+  .info-callout strong { color: var(--text); font-weight: 600; }
+
+  .field-group { margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .field-select, .field-input {
+    width: 100%; height: 52px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--fb);
+    font-size: 15px; font-weight: 500;
+    padding: 0 16px;
+    outline: none;
+    appearance: none;
+  }
+  .field-select:focus, .field-input:focus { border-color: var(--green); }
+  .field-select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%239a9a9a' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+
+  .btn {
+    width: 100%; height: 56px;
+    background: var(--green);
+    color: var(--bg);
+    border: none; border-radius: 10px;
+    font-family: var(--fb); font-size: 15px; font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: transform 0.06s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn.secondary { background: transparent; border: 1px solid var(--border2); color: var(--text); }
+  .btn.ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn.danger { background: var(--red); color: #fff; }
+  .btn.amber { background: var(--amber); color: var(--bg); }
+
+  /* ---------- CAPTURE LAYOUT ---------- */
+  .capture-wrap {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 0;
+  }
+
+  .preview-pane {
+    background: #000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 24px;
+  }
+
+  /* Page stage */
+  .preview-stage {
+    position: relative;
+    width: 82%;
+    max-width: 480px;
+    aspect-ratio: 210 / 297;
+    background: linear-gradient(135deg, #f5f4f0 0%, #e8e6df 100%);
+    border-radius: 4px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .paper-content {
+    position: absolute;
+    inset: 8%;
+    display: flex;
+    flex-direction: column;
+    color: #1a1a1a;
+  }
+  .paper-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #c8c5bc;
+  }
+  .paper-title {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 12px; color: #000;
+    margin-bottom: 3px;
+  }
+  .paper-meta {
+    font-size: 9px; color: #666; font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .paper-qr {
+    width: 44px; height: 44px;
+    background:
+      linear-gradient(45deg, #000 25%, transparent 25%),
+      linear-gradient(-45deg, #000 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #000 75%),
+      linear-gradient(-45deg, transparent 75%, #000 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+    border: 2px solid #000;
+    flex-shrink: 0;
+  }
+  .paper-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .paper-line {
+    height: 6px;
+    background: #c8c5bc;
+    border-radius: 1px;
+  }
+  .paper-line.short { width: 60%; }
+  .paper-line.mid { width: 80%; }
+  .paper-line.tiny { width: 30%; }
+
+  /* Booklet ID tag in corner - key design element */
+  .booklet-tag {
+    position: absolute;
+    bottom: 4%;
+    left: 4%;
+    font-family: var(--fm);
+    font-size: 7px;
+    color: #666;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  /* Score grid on cover */
+  .score-grid {
+    position: absolute;
+    top: 14%;
+    right: 8%;
+    border: 2px solid #dc2626;
+    padding: 4px 8px;
+    transform: rotate(-3deg);
+  }
+  .score-grid .gl {
+    font-size: 7px;
+    color: #666;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .score-grid .gv {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-style: italic;
+    font-size: 22px;
+    color: #dc2626;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  /* Crop corners */
+  .crop-corner {
+    position: absolute;
+    width: 28px; height: 28px;
+    border: 2px solid var(--green);
+    pointer-events: none;
+  }
+  .crop-corner.tl { top: 14%; left: 8%; border-right: none; border-bottom: none; }
+  .crop-corner.tr { top: 14%; right: 8%; border-left: none; border-bottom: none; }
+  .crop-corner.bl { bottom: 14%; left: 8%; border-right: none; border-top: none; }
+  .crop-corner.br { bottom: 14%; right: 8%; border-left: none; border-top: none; }
+
+  .preview-badge {
+    position: absolute;
+    top: 32px; left: 32px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .preview-badge .dot-indicator {
+    color: var(--red);
+    width: 8px; height: 8px;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* OCR detection overlay */
+  .ocr-overlay {
+    position: absolute;
+    bottom: 32px; right: 32px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 11px;
+    min-width: 200px;
+  }
+  .ocr-overlay .t {
+    font-size: 9px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+  .ocr-overlay .v {
+    font-family: var(--fm);
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .ocr-overlay .v.reading { color: var(--text2); }
+  .ocr-overlay .conf {
+    font-size: 10px;
+    color: var(--green);
+    margin-top: 4px;
+  }
+  .ocr-overlay .conf.low { color: var(--amber); }
+
+  .flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .flash.fire { animation: flash 0.4s ease-out; }
+  @keyframes flash {
+    0% { opacity: 0; }
+    20% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .capture-side {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .side-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-header .l {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text2);
+    margin-bottom: 4px;
+  }
+  .side-header .t {
+    font-family: var(--fd); font-weight: 700;
+    font-size: 17px; letter-spacing: -0.3px;
+  }
+  .side-header .m {
+    font-size: 12px; color: var(--green);
+    font-family: var(--fm);
+    margin-top: 2px;
+  }
+
+  .side-counters {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+  .counter-cell {
+    background: var(--surface);
+    padding: 14px 8px;
+    text-align: center;
+  }
+  .counter-cell .n {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .counter-cell .n.green { color: var(--green); }
+  .counter-cell .n.amber { color: var(--amber); }
+  .counter-cell .l {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-top: 6px;
+  }
+
+  /* Current booklet info */
+  .current-booklet {
+    padding: 16px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .current-booklet .l {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text2);
+    margin-bottom: 6px;
+  }
+  .current-booklet .serial {
+    font-family: var(--fm);
+    font-size: 14px;
+    color: var(--green);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .current-booklet .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .current-booklet .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .current-booklet .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text2);
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Queue list */
+  .queue-section {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-y: auto;
+  }
+  .queue-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .queue-head .t {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text2);
+  }
+  .queue-head .c {
+    font-family: var(--fm);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .booklet-row {
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    border-left: 2px solid transparent;
+  }
+  .booklet-row.active { border-left-color: var(--green); background: rgba(74,222,128,0.06); }
+  .booklet-row.flagged { border-left-color: var(--amber); background: rgba(251,191,36,0.06); }
+  .booklet-row.extra { border-left-color: var(--amber); }
+
+  .booklet-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .booklet-row .n {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .booklet-row .badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .booklet-row .badge.ok { background: var(--green-bg); color: var(--green); }
+  .booklet-row .badge.flag { background: var(--amber-bg); color: var(--amber); }
+  .booklet-row .badge.extra { background: var(--amber-bg); color: var(--amber); }
+  .booklet-row .meta {
+    font-family: var(--fm);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .empty-queue {
+    text-align: center;
+    padding: 32px 12px;
+    color: var(--text3);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* Actions area */
+  .side-actions {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .feed-btn {
+    height: 72px;
+    background: var(--green);
+    color: var(--bg);
+    border: none;
+    border-radius: 12px;
+    font-family: var(--fb);
+    font-size: 16px; font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.06s ease;
+  }
+  .feed-btn:active { transform: scale(0.98); }
+  .feed-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .feed-btn svg { width: 22px; height: 22px; }
+
+  /* ---------- FLAG REVIEW MODAL ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 100;
+  }
+  .modal-backdrop.active { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 600px;
+  }
+  .modal .eyebrow { color: var(--amber); }
+  .modal h2 {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 28px; letter-spacing: -0.8px;
+    margin-bottom: 6px;
+  }
+  .modal p {
+    color: var(--text2); font-size: 14px;
+    margin-bottom: 20px; line-height: 1.5;
+  }
+
+  .flag-detail {
+    background: var(--amber-bg);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .flag-detail svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--amber); margin-top: 1px; }
+  .flag-detail .ft {
+    color: #fcd34d;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .flag-detail .fd {
+    color: var(--text2);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  /* Score confirm */
+  .score-confirm-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: end;
+    margin-bottom: 16px;
+  }
+  .sc-col .label {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text2);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .ocr-read {
+    height: 78px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 38px;
+    color: var(--text);
+    letter-spacing: -1px;
+    position: relative;
+  }
+  .ocr-read .c {
+    position: absolute;
+    top: 6px; right: 8px;
+    font-family: var(--fb);
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 1.5px;
+  }
+  .ocr-read .c.high { color: var(--green); }
+  .ocr-read .c.low { color: var(--amber); }
+  .ocr-arrow { color: var(--text3); padding-bottom: 24px; }
+  .score-input {
+    height: 78px;
+    background: var(--surface2);
+    border: 2px solid var(--green);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 38px;
+    text-align: center;
+    letter-spacing: -1px;
+    outline: none;
+    width: 100%;
+  }
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .key {
+    height: 54px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--fb);
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .key:active { background: var(--border2); transform: scale(0.97); }
+  .key.fn { color: var(--text2); font-size: 12px; font-weight: 500; }
+
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions > * { flex: 1; }
+
+  /* ---------- COMPLETE SCREEN ---------- */
+  .complete-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .complete-card { max-width: 560px; text-align: center; }
+  .check-big {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+  }
+  .complete-card h2 {
+    font-family: var(--fd); font-weight: 900;
+    font-size: 42px; letter-spacing: -1.5px;
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .complete-card p {
+    color: var(--text2); font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 8px;
+  }
+  .stat-box .n {
+    font-family: var(--fd);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .stat-box .n.green { color: var(--green); }
+  .stat-box .n.amber { color: var(--amber); }
+  .stat-box .l {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-top: 6px;
+  }
+
+  .hidden { display: none !important; }
+
+  .queue-section::-webkit-scrollbar { width: 4px; }
+  .queue-section::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ========== SCREEN 1: SETUP ========== -->
+<div class="screen active" id="screen-setup">
+  <div class="topbar">
+    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
+    <div class="role-pill">Lecturer Station</div>
+    <div class="meta">
+      <span id="clock-1">09:41</span>
+      <span class="status-pill"><span class="dot-indicator"></span>Firebase Online</span>
+    </div>
+  </div>
+
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="eyebrow">Marking Workflow · LASU Engineering</div>
+      <h1>Start scanning a batch.</h1>
+      <p class="sub">Select the course you've finished marking. Feed booklets one at a time. The device handles identity and sorting.</p>
+
+      <div class="info-callout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div><strong>You don't need student IDs.</strong> Every booklet page has a serial number the device reads automatically. Scripts route to the right student based on the invigilator's check-in at the hall.</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Course</label>
+        <select class="field-select" id="course">
+          <option>MEE 351 — Engineering Thermodynamics</option>
+          <option>CPE 401 — Digital Systems Design</option>
+          <option>EEG 324 — Electromagnetic Fields</option>
+          <option>CVE 405 — Structural Analysis</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="field-group">
+          <label class="field-label">Session</label>
+          <select class="field-select">
+            <option>2025/2026 · First Semester</option>
+            <option>2025/2026 · Second Semester</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Pages Per Booklet</label>
+          <select class="field-select" id="pages-expected">
+            <option value="16">16 pages</option>
+            <option value="8">8 pages</option>
+            <option value="24">24 pages</option>
+            <option value="32">32 pages</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Lecturer</label>
+        <select class="field-select">
+          <option>Dr. A. Ogunleye</option>
+          <option>Prof. K. Adeyemi</option>
+        </select>
+      </div>
+
+      <button class="btn" onclick="goTo('screen-capture')">Start Batch →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN 2: CAPTURE ========== -->
+<div class="screen" id="screen-capture">
+  <div class="topbar">
+    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
+    <div class="role-pill">Lecturer Station</div>
+    <div class="meta">
+      <span style="color: var(--text);">MEE 351</span>
+      <span id="clock-2">09:41</span>
+      <span class="status-pill" id="net-status"><span class="dot-indicator"></span>Live Upload</span>
+    </div>
+  </div>
+
+  <div class="capture-wrap">
+    <!-- Preview -->
+    <div class="preview-pane">
+      <div class="preview-badge">
+        <span class="dot-indicator"></span>
+        <span>LIVE · 1080p</span>
+      </div>
+
+      <div class="preview-stage" id="stage">
+        <!-- Content filled by JS per page -->
+        <div class="flash" id="flash"></div>
+      </div>
+
+      <div class="ocr-overlay">
+        <div class="t">Reading</div>
+        <div class="v reading" id="ocr-reading">Waiting for next page...</div>
+        <div class="conf" id="ocr-conf" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="capture-side">
+      <div class="side-header">
+        <div class="l">Active Batch</div>
+        <div class="t">Thermodynamics II</div>
+        <div class="m">MEE 351 · 16-pg booklets</div>
+      </div>
+
+      <div class="side-counters">
+        <div class="counter-cell">
+          <div class="n green" id="c-done">0</div>
+          <div class="l">Done</div>
+        </div>
+        <div class="counter-cell">
+          <div class="n" id="c-pages">0</div>
+          <div class="l">Pages</div>
+        </div>
+        <div class="counter-cell">
+          <div class="n amber" id="c-flags">0</div>
+          <div class="l">Flags</div>
+        </div>
+      </div>
+
+      <div class="current-booklet" id="current-booklet-card">
+        <div class="l">Currently Scanning</div>
+        <div class="serial" id="current-serial">—</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="progress-text">0 / 16 pages</span>
+          <span id="progress-student">—</span>
+        </div>
+      </div>
+
+      <div class="queue-section">
+        <div class="queue-head">
+          <span class="t">Booklet Queue</span>
+          <span class="c"><span id="queue-count">0</span> scanned</span>
+        </div>
+        <div id="queue-list">
+          <div class="empty-queue">No booklets scanned yet.<br>Feed the first one through the scanner.</div>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <button class="feed-btn" id="feed-btn" onclick="feedPage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/>
+          </svg>
+          <span id="feed-btn-label">Feed Next Page</span>
+        </button>
+        <div class="row">
+          <button class="btn secondary" style="height: 44px; font-size: 12px;" onclick="finishCurrentBooklet()">Finish Booklet</button>
+          <button class="btn ghost" style="height: 44px; font-size: 12px;" onclick="goTo('screen-complete')">End Batch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== FLAG REVIEW MODAL ========== -->
+<div class="modal-backdrop" id="modal-flag">
+  <div class="modal">
+    <div class="eyebrow">Needs Review</div>
+    <h2 id="flag-title">Confirm the score.</h2>
+    <p id="flag-desc">The OCR confidence was below threshold. Verify the total score on the cover before this booklet is released to the student.</p>
+
+    <div class="flag-detail" id="flag-detail-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      <div>
+        <div class="ft" id="flag-reason">Low OCR confidence on handwritten score</div>
+        <div class="fd" id="flag-detail">Read as "72" with 67% confidence. Manually verify before upload.</div>
+      </div>
+    </div>
+
+    <div class="score-confirm-row">
+      <div class="sc-col">
+        <span class="label">OCR Read</span>
+        <div class="ocr-read">
+          <span id="flag-ocr-value">72</span>
+          <span class="c low" id="flag-ocr-conf">67% CONF</span>
+        </div>
+      </div>
+      <div class="ocr-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+      </div>
+      <div class="sc-col">
+        <span class="label">Confirmed</span>
+        <input class="score-input" id="flag-score-input" value="72" maxlength="3">
+      </div>
+    </div>
+
+    <div class="keypad">
+      <button class="key" onclick="keypadPress('7')">7</button>
+      <button class="key" onclick="keypadPress('8')">8</button>
+      <button class="key" onclick="keypadPress('9')">9</button>
+      <button class="key" onclick="keypadPress('4')">4</button>
+      <button class="key" onclick="keypadPress('5')">5</button>
+      <button class="key" onclick="keypadPress('6')">6</button>
+      <button class="key" onclick="keypadPress('1')">1</button>
+      <button class="key" onclick="keypadPress('2')">2</button>
+      <button class="key" onclick="keypadPress('3')">3</button>
+      <button class="key fn" onclick="keypadPress('clear')">CLR</button>
+      <button class="key" onclick="keypadPress('0')">0</button>
+      <button class="key fn" onclick="keypadPress('back')">←</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">Skip For Now</button>
+      <button class="btn" onclick="confirmFlag()">Confirm &amp; Upload →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== COMPLETE ========== -->
+<div class="screen" id="screen-complete">
+  <div class="topbar">
+    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
+    <div class="role-pill">Lecturer Station</div>
+    <div class="meta">
+      <span id="clock-3">09:41</span>
+      <span class="status-pill"><span class="dot-indicator"></span>Batch Complete</span>
+    </div>
+  </div>
+
+  <div class="complete-wrap">
+    <div class="complete-card">
+      <div class="check-big">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <div class="eyebrow" style="text-align: center;">Batch Uploaded</div>
+      <h2>Scripts are live.</h2>
+      <p>Every student will see their marked script on Unify within the hour. Flagged scripts are in your review queue.</p>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="n green" id="final-booklets">12</div>
+          <div class="l">Booklets</div>
+        </div>
+        <div class="stat-box">
+          <div class="n" id="final-pages">192</div>
+          <div class="l">Pages</div>
+        </div>
+        <div class="stat-box">
+          <div class="n amber" id="final-flags">2</div>
+          <div class="l">Flagged</div>
+        </div>
+        <div class="stat-box">
+          <div class="n" id="final-time">18m</div>
+          <div class="l">Time</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn secondary" onclick="resetBatch()">New Batch</button>
+        <button class="btn" onclick="resetBatch()">Back to Start</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- ROUTING ----------
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'screen-capture') {
+      renderPaper(null);
+      updateBookletCard();
+      renderQueue();
+    }
+    if (id === 'screen-complete') {
+      document.getElementById('final-booklets').textContent = state.completedBooklets.length;
+      document.getElementById('final-pages').textContent = state.completedBooklets.reduce((s,b) => s + b.pages.length, 0);
+      document.getElementById('final-flags').textContent = state.completedBooklets.filter(b => b.flagged).length;
+    }
+  }
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal() { document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active')); }
+
+  // ---------- CLOCK ----------
+  function updateClocks() {
+    const now = new Date();
+    const s = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    ['clock-1','clock-2','clock-3'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = s; });
+  }
+  updateClocks(); setInterval(updateClocks, 30000);
+
+  // ---------- STATE ----------
+  const state = {
+    expectedPages: 16,
+    currentBooklet: null,
+    completedBooklets: [],
+  };
+
+  // Mock: what the device "would see" from the invigilator's check-in data
+  // In production: Firestore query on /booklets/{serial} returns studentUID
+  const bookletDB = {
+    'LSU-M351-0417': { student: 'Chidinma Okafor', matric: '190591089', extras: [] },
+    'LSU-M351-0418': { student: 'Samuel Adeyinka', matric: '190591024', extras: ['LSU-M351-0892'] },
+    'LSU-M351-0419': { student: 'Amaka Eze', matric: '200591155', extras: [] },
+    'LSU-M351-0420': { student: 'Tunde Bakare', matric: '190591077', extras: [] },
+  };
+
+  // Mock feed queue — what's actually in the lecturer's pile in the order they'll feed it
+  // Note: we include an out-of-order page to demonstrate the sorting logic
+  const feedSequence = [
+    { serial: 'LSU-M351-0417', pageNum: 1, isCover: true, ocrScore: 72, ocrConf: 0.96 },
+    { serial: 'LSU-M351-0417', pageNum: 2 },
+    { serial: 'LSU-M351-0417', pageNum: 3 },
+    { serial: 'LSU-M351-0417', pageNum: 4 },
+    // Pages 5-16 skipped for demo brevity
+    { serial: 'LSU-M351-0418', pageNum: 1, isCover: true, ocrScore: 58, ocrConf: 0.67, flagged: true, flagReason: 'Low OCR confidence on score grid' },
+    { serial: 'LSU-M351-0418', pageNum: 2 },
+    { serial: 'LSU-M351-0417', pageNum: 5 },   // Out-of-order! This page got mixed in, but device sorts it correctly
+    { serial: 'LSU-M351-0418', pageNum: 3 },
+    { serial: 'LSU-M351-0419', pageNum: 1, isCover: true, ocrScore: 81, ocrConf: 0.94 },
+    { serial: 'LSU-M351-0419', pageNum: 2, isExtra: true, parentSerial: 'LSU-M351-0418' },
+  ];
+  let feedIndex = 0;
+
+  // ---------- FEED A PAGE ----------
+  function feedPage() {
+    if (feedIndex >= feedSequence.length) {
+      alert('Demo sequence complete. Press "End Batch" to finish.');
+      return;
+    }
+
+    const page = feedSequence[feedIndex++];
+
+    // Trigger flash
+    const flash = document.getElementById('flash');
+    flash.classList.remove('fire');
+    void flash.offsetWidth;
+    flash.classList.add('fire');
+
+    // Render the paper in preview
+    renderPaper(page);
+
+    // Update OCR overlay
+    setTimeout(() => updateOCR(page), 200);
+
+    // After "processing" delay, route the page
+    setTimeout(() => routePage(page), 900);
+  }
+
+  function updateOCR(page) {
+    const reading = document.getElementById('ocr-reading');
+    const conf = document.getElementById('ocr-conf');
+    reading.classList.remove('reading');
+    reading.textContent = `${page.serial} · Pg ${page.pageNum}`;
+    if (page.isCover && page.ocrScore != null) {
+      conf.style.display = 'block';
+      conf.textContent = `Score: ${page.ocrScore} · ${Math.round(page.ocrConf * 100)}% conf`;
+      conf.className = 'conf ' + (page.ocrConf >= 0.8 ? '' : 'low');
+    } else {
+      conf.style.display = 'none';
+    }
+  }
+
+  function routePage(page) {
+    // Determine which booklet this page belongs to (handles out-of-order)
+    let targetSerial = page.serial;
+    let studentInfo = bookletDB[targetSerial];
+
+    // Handle extra sheet: route to parent booklet's owner
+    if (page.isExtra && page.parentSerial) {
+      studentInfo = bookletDB[page.parentSerial];
+      targetSerial = page.parentSerial; // Store under parent for page count integrity
+    }
+
+    if (!studentInfo) {
+      // Unknown booklet — flag for manual review
+      console.warn('Unknown booklet serial:', page.serial);
+      return;
+    }
+
+    // Find or create booklet entry
+    let booklet = state.completedBooklets.find(b => b.serial === targetSerial);
+    if (!booklet) {
+      booklet = {
+        serial: targetSerial,
+        student: studentInfo.student,
+        matric: studentInfo.matric,
+        pages: [],
+        extras: [],
+        flagged: false,
+        score: null,
+        ocrConf: null,
+      };
+      state.completedBooklets.push(booklet);
+    }
+
+    // Add page
+    if (page.isExtra) {
+      booklet.extras.push({ serial: page.serial, pageNum: page.pageNum });
+    } else {
+      booklet.pages.push({ pageNum: page.pageNum, isCover: page.isCover });
+    }
+
+    // Capture score from cover
+    if (page.isCover && page.ocrScore != null) {
+      booklet.score = page.ocrScore;
+      booklet.ocrConf = page.ocrConf;
+      if (page.flagged || page.ocrConf < 0.8) {
+        booklet.flagged = true;
+        booklet.flagReason = page.flagReason || 'Low OCR confidence on score grid';
+      }
+    }
+
+    // Set as active booklet (the one the lecturer is currently feeding)
+    // Only change "active" if this isn't a page from a previously-completed booklet
+    state.currentBooklet = booklet;
+
+    renderQueue();
+    updateBookletCard();
+    updateCounters();
+
+    // Auto-prompt flag modal if this is the cover and flagged
+    if (page.isCover && booklet.flagged) {
+      setTimeout(() => showFlagModal(booklet), 300);
+    }
+
+    // Check for page count integrity (every few pages)
+    checkIntegrity();
+  }
+
+  function checkIntegrity() {
+    // In a real system: after N seconds of no new pages for a booklet,
+    // verify page count matches expected. Flag if mismatch.
+    // Here we just update UI state.
+  }
+
+  function finishCurrentBooklet() {
+    if (!state.currentBooklet) return;
+    const b = state.currentBooklet;
+    const totalScanned = b.pages.length + b.extras.length;
+    const expected = state.expectedPages;
+
+    if (b.pages.length < expected && !b.flagged) {
+      b.flagged = true;
+      b.flagReason = `Incomplete booklet: only ${b.pages.length} of ${expected} pages scanned`;
+      renderQueue();
+      updateCounters();
+      alert(`Booklet ${b.serial} is incomplete (${b.pages.length}/${expected} pages). Flagged for review.`);
+    }
+    state.currentBooklet = null;
+    updateBookletCard();
+  }
+
+  // ---------- RENDERING ----------
+  function renderPaper(page) {
+    const stage = document.getElementById('stage');
+    if (!page) {
+      stage.innerHTML = `
+        <div class="paper-content" style="align-items: center; justify-content: center; color: #999; font-style: italic; font-size: 11px;">
+          No page in frame
+        </div>
+        <div class="flash" id="flash"></div>
+      `;
+      return;
+    }
+
+    let extraTag = '';
+    if (page.isExtra) extraTag = ' (extra)';
+
+    let coverMarks = '';
+    if (page.isCover && page.ocrScore != null) {
+      coverMarks = `
+        <div class="score-grid">
+          <div class="gl">Total</div>
+          <div class="gv">${page.ocrScore}/100</div>
+        </div>
+      `;
+    }
+
+    let bodyLines = '';
+    if (page.isCover) {
+      bodyLines = `
+        <div class="paper-line short"></div>
+        <div class="paper-line" style="margin-top: 12px; width: 50%;"></div>
+        <div class="paper-line tiny"></div>
+        <div class="paper-line short"></div>
+        <div class="paper-line" style="margin-top: 20px; width: 40%;"></div>
+        <div class="paper-line tiny"></div>
+      `;
+    } else {
+      bodyLines = `
+        <div class="paper-line mid"></div>
+        <div class="paper-line"></div>
+        <div class="paper-line short"></div>
+        <div class="paper-line mid"></div>
+        <div class="paper-line"></div>
+        <div class="paper-line tiny"></div>
+        <div class="paper-line short"></div>
+        <div class="paper-line mid"></div>
+        <div class="paper-line"></div>
+      `;
+    }
+
+    stage.innerHTML = `
+      <div class="paper-content">
+        <div class="paper-header">
+          <div>
+            <div class="paper-title">MEE 351 — Engineering Thermodynamics</div>
+            <div class="paper-meta">${page.isCover ? 'FINAL EXAM · COVER PAGE' : 'Page ' + page.pageNum + extraTag} · 2025/2026</div>
+          </div>
+          <div class="paper-qr"></div>
+        </div>
+        <div class="paper-body">${bodyLines}</div>
+      </div>
+      ${coverMarks}
+      <div class="booklet-tag">${page.serial} · p${page.pageNum}</div>
+      <div class="crop-corner tl"></div>
+      <div class="crop-corner tr"></div>
+      <div class="crop-corner bl"></div>
+      <div class="crop-corner br"></div>
+      <div class="flash" id="flash"></div>
+    `;
+  }
+
+  function updateBookletCard() {
+    const b = state.currentBooklet;
+    const card = document.getElementById('current-booklet-card');
+    if (!b) {
+      document.getElementById('current-serial').textContent = '—';
+      document.getElementById('progress-fill').style.width = '0%';
+      document.getElementById('progress-text').textContent = `0 / ${state.expectedPages} pages`;
+      document.getElementById('progress-student').textContent = '—';
+      return;
+    }
+    document.getElementById('current-serial').textContent = b.serial;
+    const count = b.pages.length;
+    const pct = Math.min(100, (count / state.expectedPages) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = `${count} / ${state.expectedPages} pages${b.extras.length ? ' + ' + b.extras.length + ' extra' : ''}`;
+    document.getElementById('progress-student').textContent = b.student;
+  }
+
+  function renderQueue() {
+    const list = document.getElementById('queue-list');
+    document.getElementById('queue-count').textContent = state.completedBooklets.length;
+    if (!state.completedBooklets.length) {
+      list.innerHTML = '<div class="empty-queue">No booklets scanned yet.<br>Feed the first one through the scanner.</div>';
+      return;
+    }
+    list.innerHTML = state.completedBooklets.slice().reverse().map(b => {
+      const isActive = state.currentBooklet === b;
+      const cls = isActive ? 'active' : (b.flagged ? 'flagged' : '');
+      const badge = b.flagged ? '<span class="badge flag">Flag</span>' : (isActive ? '<span class="badge ok">Active</span>' : '<span class="badge ok">Done</span>');
+      const extraNote = b.extras.length ? ` + ${b.extras.length} extra` : '';
+      return `
+        <div class="booklet-row ${cls}">
+          <div class="booklet-row-head">
+            <span class="n">${b.student}</span>
+            ${badge}
+          </div>
+          <div class="meta">${b.serial} · ${b.pages.length}/${state.expectedPages}${extraNote}${b.score != null ? ' · ' + b.score + '/100' : ''}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateCounters() {
+    const done = state.completedBooklets.filter(b => b !== state.currentBooklet || b.pages.length >= state.expectedPages);
+    document.getElementById('c-done').textContent = done.length;
+    document.getElementById('c-pages').textContent = state.completedBooklets.reduce((s,b) => s + b.pages.length + b.extras.length, 0);
+    document.getElementById('c-flags').textContent = state.completedBooklets.filter(b => b.flagged).length;
+  }
+
+  // ---------- FLAG MODAL ----------
+  let pendingFlagBooklet = null;
+  function showFlagModal(booklet) {
+    pendingFlagBooklet = booklet;
+    document.getElementById('flag-title').textContent = 'Confirm the score.';
+    document.getElementById('flag-reason').textContent = booklet.flagReason || 'Needs manual review';
+    document.getElementById('flag-detail').textContent = `Student: ${booklet.student} (${booklet.matric}) · Booklet ${booklet.serial}`;
+    document.getElementById('flag-ocr-value').textContent = booklet.score ?? '??';
+    const confEl = document.getElementById('flag-ocr-conf');
+    if (booklet.ocrConf != null) {
+      confEl.textContent = Math.round(booklet.ocrConf * 100) + '% CONF';
+      confEl.className = 'c ' + (booklet.ocrConf >= 0.8 ? 'high' : 'low');
+    }
+    document.getElementById('flag-score-input').value = booklet.score ?? '';
+    openModal('modal-flag');
+  }
+
+  function keypadPress(k) {
+    const input = document.getElementById('flag-score-input');
+    if (k === 'clear') { input.value = ''; return; }
+    if (k === 'back') { input.value = input.value.slice(0, -1); return; }
+    if (input.value.length >= 3) return;
+    input.value += k;
+  }
+
+  function confirmFlag() {
+    if (!pendingFlagBooklet) { closeModal(); return; }
+    const v = parseInt(document.getElementById('flag-score-input').value);
+    if (isNaN(v)) { alert('Enter a valid score.'); return; }
+    pendingFlagBooklet.score = v;
+    pendingFlagBooklet.flagged = false; // resolved
+    pendingFlagBooklet.flagReason = null;
+    pendingFlagBooklet = null;
+    closeModal();
+    renderQueue();
+    updateCounters();
+  }
+
+  function resetBatch() {
+    state.currentBooklet = null;
+    state.completedBooklets = [];
+    feedIndex = 0;
+    goTo('screen-setup');
+  }
+</script>
+
+</body>
+</html>
