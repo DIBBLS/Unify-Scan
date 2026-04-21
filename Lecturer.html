@@ -2,1380 +2,1328 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Unify Scan · Lecturer Station</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>Unify Scan</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href='data:application/manifest+json,{"name":"Unify Scan","short_name":"Unify Scan","start_url":".","display":"fullscreen","orientation":"portrait","background_color":"%230a0a0a","theme_color":"%230a0a0a","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 fill=%22%230a0a0a%22/><text x=%2296%22 y=%22120%22 text-anchor=%22middle%22 font-family=%22serif%22 font-weight=%22900%22 font-size=%2280%22 fill=%22%23f5f4f0%22>U</text><circle cx=%22140%22 cy=%22115%22 r=%2210%22 fill=%22%234ade80%22/></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
+
 <style>
   :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1c1c1c;
-    --border: #262626;
-    --border2: #333;
-    --text: #f0efeb;
-    --text2: #9a9a9a;
-    --text3: #555;
-    --green: #4ade80;
-    --green-deep: #16a34a;
-    --green-bg: rgba(74,222,128,0.12);
-    --amber: #fbbf24;
-    --amber-bg: rgba(251,191,36,0.12);
-    --red: #ef4444;
-    --red-bg: rgba(239,68,68,0.12);
-    --fd: 'Playfair Display', serif;
-    --fb: 'DM Sans', sans-serif;
-    --fm: 'JetBrains Mono', monospace;
+    --bg: #0a0a0a; --surface: #141414; --surface2: #1c1c1c;
+    --border: #262626; --border2: #333;
+    --text: #f0efeb; --text2: #9a9a9a; --text3: #555;
+    --green: #4ade80; --green-deep: #16a34a; --green-bg: rgba(74,222,128,0.12);
+    --amber: #fbbf24; --amber-bg: rgba(251,191,36,0.12);
+    --red: #ef4444; --red-bg: rgba(239,68,68,0.12);
+    --blue: #60a5fa; --blue-bg: rgba(96,165,250,0.12);
+    --fd: 'Playfair Display', serif; --fb: 'DM Sans', sans-serif; --fm: 'JetBrains Mono', monospace;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
-  html, body { height: 100%; overflow: hidden; }
-  body { font-family: var(--fb); background: var(--bg); color: var(--text); font-size: 14px; -webkit-font-smoothing: antialiased; }
-
-  .screen { display: none; height: 100vh; flex-direction: column; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; width: 100%; overflow: hidden; overscroll-behavior: none; }
+  body {
+    font-family: var(--fb); background: var(--bg); color: var(--text); font-size: 14px;
+    -webkit-font-smoothing: antialiased; position: fixed; inset: 0;
+    user-select: none; -webkit-user-select: none;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  input { user-select: text; -webkit-user-select: text; }
+  .screen { display: none; height: 100%; width: 100%; flex-direction: column; }
   .screen.active { display: flex; }
 
-  /* Topbar */
   .topbar {
-    height: 56px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    flex-shrink: 0;
+    height: 52px; background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; gap: 10px;
   }
-  .wordmark { font-family: var(--fd); font-weight: 900; font-size: 20px; letter-spacing: -0.5px; }
-  .wordmark .dot { color: var(--green); }
-  .role-pill {
-    margin-left: 14px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--green);
-    padding: 4px 10px;
-    background: var(--green-bg);
-    border-radius: 20px;
+  .topbar-back {
+    width: 32px; height: 32px; background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text); cursor: pointer;
   }
-  .topbar .meta {
-    margin-left: auto;
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    font-size: 11px;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
+  .topbar .title { font-family: var(--fd); font-weight: 700; font-size: 16px; letter-spacing: -0.3px; flex: 1; }
+  .topbar .wordmark { font-family: var(--fd); font-weight: 900; font-size: 18px; letter-spacing: -0.5px; }
+  .topbar .wordmark .dot { color: var(--green); }
+  .topbar .status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--green); padding: 4px 8px; background: var(--green-bg); border-radius: 20px;
   }
-  .status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 20px;
-    background: var(--green-bg);
-    color: var(--green);
-    font-weight: 500;
-    letter-spacing: 1px;
-  }
-  .status-pill.buffer { background: var(--amber-bg); color: var(--amber); }
-  .dot-indicator { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .status .dot-ind { width: 5px; height: 5px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+  .status.warn { color: var(--amber); background: var(--amber-bg); }
+  .status.error { color: var(--red); background: var(--red-bg); }
+  .status.blue { color: var(--blue); background: var(--blue-bg); }
 
-  /* ---------- SETUP ---------- */
-  .setup-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
-  .setup-card {
-    width: 100%; max-width: 560px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 36px;
-  }
-  .eyebrow {
-    font-size: 10px; font-weight: 600;
-    letter-spacing: 2.5px; text-transform: uppercase;
-    color: var(--green);
-    margin-bottom: 14px;
-  }
-  .setup-card h1 {
-    font-family: var(--fd); font-weight: 900;
-    font-size: 38px; letter-spacing: -1px; line-height: 1.05;
-    margin-bottom: 8px;
-  }
-  .setup-card .sub {
-    color: var(--text2); font-size: 14px; line-height: 1.5;
-    margin-bottom: 28px;
-  }
-  .info-callout {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 24px;
-    font-size: 13px;
-    color: var(--text2);
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    line-height: 1.5;
-  }
-  .info-callout svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--green); margin-top: 2px; }
-  .info-callout strong { color: var(--text); font-weight: 600; }
+  .welcome { flex: 1; overflow-y: auto; padding: 24px 20px 100px; }
+  .welcome .hero { padding: 32px 0 24px; }
+  .welcome .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
+  .welcome h1 { font-family: var(--fd); font-weight: 900; font-size: 36px; line-height: 1.02; letter-spacing: -1.2px; margin-bottom: 10px; }
+  .welcome h1 .alt { color: var(--green); font-style: italic; }
+  .welcome .sub { color: var(--text2); font-size: 14px; line-height: 1.5; }
 
-  .field-group { margin-bottom: 16px; }
-  .field-label {
-    display: block;
-    font-size: 10px; font-weight: 600;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--text2);
-    margin-bottom: 8px;
-  }
+  .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-top: 20px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
   .field-select, .field-input {
-    width: 100%; height: 52px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: var(--fb);
-    font-size: 15px; font-weight: 500;
-    padding: 0 16px;
-    outline: none;
-    appearance: none;
+    width: 100%; height: 48px; background: var(--surface2);
+    border: 1px solid var(--border2); border-radius: 10px; color: var(--text);
+    font-family: var(--fb); font-size: 15px; font-weight: 500; padding: 0 14px;
+    outline: none; appearance: none; -webkit-appearance: none;
   }
-  .field-select:focus, .field-input:focus { border-color: var(--green); }
   .field-select {
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%239a9a9a' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    padding-right: 40px;
-    cursor: pointer;
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
   }
-  .row { display: flex; gap: 12px; }
-  .row > * { flex: 1; }
+  .field-select:focus, .field-input:focus { border-color: var(--green); }
 
   .btn {
-    width: 100%; height: 56px;
-    background: var(--green);
-    color: var(--bg);
-    border: none; border-radius: 10px;
-    font-family: var(--fb); font-size: 15px; font-weight: 700;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    transition: transform 0.06s ease;
+    width: 100%; height: 54px; background: var(--green); color: var(--bg);
+    border: none; border-radius: 12px; font-family: var(--fb); font-size: 15px;
+    font-weight: 700; letter-spacing: 0.3px; cursor: pointer;
+    transition: transform 0.06s ease, opacity 0.1s ease;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn.secondary { background: transparent; border: 1px solid var(--border2); color: var(--text); }
-  .btn.ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
-  .btn.danger { background: var(--red); color: #fff; }
-  .btn.amber { background: var(--amber); color: var(--bg); }
+  .btn.ghost { background: transparent; color: var(--text2); }
+  .btn.blue { background: var(--blue); color: #0a0a0a; }
 
-  /* ---------- CAPTURE LAYOUT ---------- */
-  .capture-wrap {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    min-height: 0;
+  .info-callout {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-top: 16px;
+    font-size: 12px; color: var(--text2);
+    display: flex; gap: 10px; align-items: flex-start; line-height: 1.5;
   }
+  .info-callout svg { flex-shrink: 0; width: 16px; height: 16px; color: var(--green); margin-top: 2px; }
+  .info-callout strong { color: var(--text); font-weight: 600; }
 
-  .preview-pane {
-    background: #000;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 24px;
+  .config-banner {
+    background: var(--amber-bg); border: 1px solid rgba(251,191,36,0.4);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+    font-size: 13px; color: #fde68a;
+    display: flex; gap: 10px; align-items: flex-start; line-height: 1.5;
   }
+  .config-banner svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--amber); margin-top: 1px; }
+  .config-banner strong { color: var(--amber); display: block; margin-bottom: 2px; }
 
-  /* Page stage */
-  .preview-stage {
-    position: relative;
-    width: 82%;
-    max-width: 480px;
-    aspect-ratio: 210 / 297;
-    background: linear-gradient(135deg, #f5f4f0 0%, #e8e6df 100%);
-    border-radius: 4px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    overflow: hidden;
+  .sheets-banner {
+    background: var(--blue-bg); border: 1px solid rgba(96,165,250,0.4);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+    font-size: 13px; color: #bfdbfe;
+    display: flex; gap: 10px; align-items: flex-start; line-height: 1.5;
   }
-  .paper-content {
-    position: absolute;
-    inset: 8%;
-    display: flex;
-    flex-direction: column;
-    color: #1a1a1a;
-  }
-  .paper-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 14px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #c8c5bc;
-  }
-  .paper-title {
-    font-family: var(--fd); font-weight: 900;
-    font-size: 12px; color: #000;
-    margin-bottom: 3px;
-  }
-  .paper-meta {
-    font-size: 9px; color: #666; font-weight: 500;
-    letter-spacing: 0.3px;
-  }
-  .paper-qr {
-    width: 44px; height: 44px;
-    background:
-      linear-gradient(45deg, #000 25%, transparent 25%),
-      linear-gradient(-45deg, #000 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, #000 75%),
-      linear-gradient(-45deg, transparent 75%, #000 75%);
-    background-size: 8px 8px;
-    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
-    border: 2px solid #000;
-    flex-shrink: 0;
-  }
-  .paper-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-  .paper-line {
-    height: 6px;
-    background: #c8c5bc;
-    border-radius: 1px;
-  }
-  .paper-line.short { width: 60%; }
-  .paper-line.mid { width: 80%; }
-  .paper-line.tiny { width: 30%; }
+  .sheets-banner svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--blue); margin-top: 1px; }
+  .sheets-banner strong { color: var(--blue); display: block; margin-bottom: 2px; }
 
-  /* Booklet ID tag in corner - key design element */
-  .booklet-tag {
-    position: absolute;
-    bottom: 4%;
-    left: 4%;
-    font-family: var(--fm);
-    font-size: 7px;
-    color: #666;
-    font-weight: 500;
-    letter-spacing: 0.5px;
+  .entry-wrap { flex: 1; padding: 24px 20px; overflow-y: auto; }
+  .step-num { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+  .step-title { font-family: var(--fd); font-weight: 900; font-size: 28px; line-height: 1.05; letter-spacing: -0.8px; margin-bottom: 6px; }
+  .step-desc { color: var(--text2); font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+
+  .booklet-input-box {
+    background: var(--surface); border: 2px solid var(--green);
+    border-radius: 14px; padding: 20px; margin-bottom: 16px;
+  }
+  .booklet-input-box .l { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 10px; }
+  .booklet-input-box input {
+    width: 100%; background: transparent; border: none; color: var(--text);
+    font-family: var(--fm); font-size: 22px; font-weight: 600; letter-spacing: 1.5px; outline: none;
+  }
+  .booklet-input-box input::placeholder {
+    color: var(--text3); font-family: var(--fb); font-weight: 400; font-size: 15px; letter-spacing: 0;
   }
 
-  /* Score grid on cover */
-  .score-grid {
-    position: absolute;
-    top: 14%;
-    right: 8%;
-    border: 2px solid #dc2626;
-    padding: 4px 8px;
-    transform: rotate(-3deg);
+  .scan-qr-hint { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text3); margin-bottom: 20px; padding: 0 4px; }
+  .scan-qr-hint svg { color: var(--green); }
+
+  .match-card {
+    background: var(--green-bg); border: 1px solid rgba(74,222,128,0.4);
+    border-radius: 14px; padding: 16px;
+    display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
   }
-  .score-grid .gl {
-    font-size: 7px;
-    color: #666;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 2px;
+  .match-check {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--green); color: var(--bg);
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .score-grid .gv {
-    font-family: var(--fd);
-    font-weight: 900;
-    font-style: italic;
-    font-size: 22px;
-    color: #dc2626;
-    letter-spacing: -1px;
-    line-height: 1;
+  .match-info { flex: 1; min-width: 0; }
+  .match-info .t { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 3px; }
+  .match-info .n { font-family: var(--fd); font-weight: 700; font-size: 17px; letter-spacing: -0.3px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .match-info .m { font-size: 11px; color: var(--text2); font-family: var(--fm); }
+
+  .error-card {
+    background: var(--red-bg); border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 12px; padding: 14px; margin-bottom: 16px;
+    font-size: 12px; color: #fca5a5;
+    display: flex; gap: 10px; line-height: 1.5;
+  }
+  .error-card svg { flex-shrink: 0; width: 16px; height: 16px; color: var(--red); margin-top: 1px; }
+  .error-card strong { color: #fecaca; }
+
+  #screen-camera { background: #000; }
+  .camera-stage { position: relative; flex: 1; overflow: hidden; background: #000; }
+  #camera-video, #camera-canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  #camera-canvas { display: none; }
+  #captured-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+
+  .camera-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; }
+  .camera-topbar {
+    background: linear-gradient(180deg, rgba(0,0,0,0.75) 0%, transparent 100%);
+    padding: 14px 16px 24px; pointer-events: auto;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .camera-topbar .cam-back {
+    width: 36px; height: 36px; background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff;
+  }
+  .camera-topbar .cam-info { flex: 1; min-width: 0; }
+  .camera-topbar .cam-info .student { font-family: var(--fd); font-weight: 700; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .camera-topbar .cam-info .course { font-family: var(--fm); font-size: 10px; color: var(--green); margin-top: 2px; }
+  .camera-topbar .page-counter {
+    padding: 6px 12px; background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px; font-family: var(--fm); font-size: 11px; color: #fff; font-weight: 500;
   }
 
-  /* Crop corners */
-  .crop-corner {
-    position: absolute;
-    width: 28px; height: 28px;
-    border: 2px solid var(--green);
-    pointer-events: none;
-  }
-  .crop-corner.tl { top: 14%; left: 8%; border-right: none; border-bottom: none; }
-  .crop-corner.tr { top: 14%; right: 8%; border-left: none; border-bottom: none; }
-  .crop-corner.bl { bottom: 14%; left: 8%; border-right: none; border-top: none; }
-  .crop-corner.br { bottom: 14%; right: 8%; border-left: none; border-top: none; }
+  .crop-corner-cam { position: absolute; width: 24px; height: 24px; border: 3px solid var(--green); }
+  .crop-corner-cam.tl { top: 80px; left: 16px; border-right: none; border-bottom: none; }
+  .crop-corner-cam.tr { top: 80px; right: 16px; border-left: none; border-bottom: none; }
+  .crop-corner-cam.bl { bottom: 180px; left: 16px; border-right: none; border-top: none; }
+  .crop-corner-cam.br { bottom: 180px; right: 16px; border-left: none; border-top: none; }
 
-  .preview-badge {
-    position: absolute;
-    top: 32px; left: 32px;
-    background: rgba(10,10,10,0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  .preview-badge .dot-indicator {
-    color: var(--red);
-    width: 8px; height: 8px;
-    animation: blink 1.5s ease-in-out infinite;
-  }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-  /* OCR detection overlay */
-  .ocr-overlay {
-    position: absolute;
-    bottom: 32px; right: 32px;
-    background: rgba(10,10,10,0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 11px;
-    min-width: 200px;
-  }
-  .ocr-overlay .t {
-    font-size: 9px; letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text2);
-    margin-bottom: 6px;
-  }
-  .ocr-overlay .v {
-    font-family: var(--fm);
-    font-size: 13px;
-    color: var(--green);
-    font-weight: 500;
-    margin-bottom: 2px;
-  }
-  .ocr-overlay .v.reading { color: var(--text2); }
-  .ocr-overlay .conf {
-    font-size: 10px;
-    color: var(--green);
-    margin-top: 4px;
-  }
-  .ocr-overlay .conf.low { color: var(--amber); }
-
-  .flash {
-    position: absolute;
-    inset: 0;
-    background: #fff;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .flash.fire { animation: flash 0.4s ease-out; }
-  @keyframes flash {
-    0% { opacity: 0; }
-    20% { opacity: 0.9; }
-    100% { opacity: 0; }
+  .current-page-label {
+    position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--green);
   }
 
-  /* ---------- SIDEBAR ---------- */
-  .capture-side {
-    background: var(--surface);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
+  .camera-bottom { padding: 20px 24px 32px; background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%); pointer-events: auto; }
+  .capture-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .cap-side-btn {
+    width: 56px; height: 56px; background: rgba(30,30,30,0.7);
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; flex-shrink: 0; position: relative;
   }
+  .capture-button {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: #fff; border: 4px solid rgba(255,255,255,0.3);
+    padding: 6px; cursor: pointer; flex-shrink: 0;
+    transition: transform 0.08s ease; position: relative;
+  }
+  .capture-button:active { transform: scale(0.93); }
+  .capture-button::after { content: ""; display: block; width: 100%; height: 100%; border-radius: 50%; background: #fff; transition: background 0.1s ease; }
+  .capture-button.cover::after { background: var(--green); }
 
-  .side-header {
-    padding: 18px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .side-header .l {
-    font-size: 10px; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--text2);
-    margin-bottom: 4px;
-  }
-  .side-header .t {
-    font-family: var(--fd); font-weight: 700;
-    font-size: 17px; letter-spacing: -0.3px;
-  }
-  .side-header .m {
-    font-size: 12px; color: var(--green);
-    font-family: var(--fm);
-    margin-top: 2px;
-  }
+  .review-bottom { padding: 16px 20px 28px; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); pointer-events: auto; }
+  .review-bottom .rb-title { font-family: var(--fd); font-weight: 700; font-size: 16px; margin-bottom: 4px; color: #fff; }
+  .review-bottom .rb-desc { font-size: 12px; color: var(--text2); margin-bottom: 14px; line-height: 1.4; }
+  .review-bottom .rb-actions { display: flex; gap: 10px; }
+  .review-bottom .rb-actions .btn { height: 48px; font-size: 13px; }
 
-  .side-counters {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
+  .score-field-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  .score-field-wrap .l { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
+  .score-field-wrap .row { display: flex; gap: 10px; align-items: center; }
+  .score-field-wrap input {
+    flex: 1; background: var(--surface2); border: 2px solid var(--green);
+    border-radius: 10px; color: var(--text); font-family: var(--fd);
+    font-weight: 900; font-size: 24px; text-align: center; padding: 10px; outline: none; width: 0;
   }
-  .counter-cell {
-    background: var(--surface);
-    padding: 14px 8px;
-    text-align: center;
-  }
-  .counter-cell .n {
-    font-family: var(--fd);
-    font-weight: 900;
-    font-size: 26px;
-    letter-spacing: -0.5px;
-    line-height: 1;
-  }
-  .counter-cell .n.green { color: var(--green); }
-  .counter-cell .n.amber { color: var(--amber); }
-  .counter-cell .l {
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text2);
-    margin-top: 6px;
-  }
+  .score-field-wrap .total { color: var(--text2); font-family: var(--fd); font-weight: 700; font-size: 18px; }
+  .ocr-confidence { margin-top: 8px; font-size: 10px; color: var(--green); letter-spacing: 1px; }
+  .ocr-confidence.low { color: var(--amber); }
 
-  /* Current booklet info */
-  .current-booklet {
-    padding: 16px 20px;
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
-  .current-booklet .l {
-    font-size: 10px; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--text2);
-    margin-bottom: 6px;
-  }
-  .current-booklet .serial {
-    font-family: var(--fm);
-    font-size: 14px;
-    color: var(--green);
-    font-weight: 500;
-    margin-bottom: 6px;
-  }
-  .current-booklet .progress-track {
-    height: 4px;
-    background: var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .current-booklet .progress-fill {
-    height: 100%;
-    background: var(--green);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-  }
-  .current-booklet .progress-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    color: var(--text2);
-    margin-top: 6px;
-    letter-spacing: 0.5px;
-  }
+  .flash-effect { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 100; }
+  .flash-effect.fire { animation: flashAnim 0.35s ease-out; }
+  @keyframes flashAnim { 0% { opacity: 0; } 25% { opacity: 0.9; } 100% { opacity: 0; } }
 
-  /* Queue list */
-  .queue-section {
-    flex: 1;
-    padding: 16px 20px;
-    overflow-y: auto;
+  .pages-strip {
+    position: absolute; bottom: 120px; left: 0; right: 0;
+    padding: 0 16px; display: flex; gap: 6px;
+    overflow-x: auto; pointer-events: auto; scrollbar-width: none;
   }
-  .queue-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .queue-head .t {
-    font-size: 10px; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--text2);
-  }
-  .queue-head .c {
-    font-family: var(--fm);
-    font-size: 11px;
-    color: var(--text);
-  }
+  .pages-strip::-webkit-scrollbar { display: none; }
+  .pages-strip .mini-page { width: 42px; height: 54px; background: #f5f4f0; border: 2px solid var(--green); border-radius: 4px; flex-shrink: 0; position: relative; overflow: hidden; }
+  .pages-strip .mini-page img { width: 100%; height: 100%; object-fit: cover; }
+  .pages-strip .mini-page .pn { position: absolute; bottom: 2px; left: 2px; right: 2px; background: rgba(0,0,0,0.7); color: #fff; font-size: 8px; font-weight: 700; text-align: center; padding: 1px 0; border-radius: 2px; }
 
-  .booklet-row {
-    padding: 10px 12px;
-    background: var(--surface2);
-    border-radius: 8px;
-    margin-bottom: 6px;
-    border-left: 2px solid transparent;
+  .cam-fallback {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px; background: #000; text-align: center;
+    color: var(--text2); font-size: 14px; line-height: 1.5;
   }
-  .booklet-row.active { border-left-color: var(--green); background: rgba(74,222,128,0.06); }
-  .booklet-row.flagged { border-left-color: var(--amber); background: rgba(251,191,36,0.06); }
-  .booklet-row.extra { border-left-color: var(--amber); }
+  .cam-fallback.show { display: flex; }
+  .cam-fallback h3 { font-family: var(--fd); font-weight: 900; font-size: 22px; color: #fff; margin-bottom: 8px; }
+  .cam-fallback .icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(251,191,36,0.15); color: var(--amber); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; }
 
-  .booklet-row-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-  }
-  .booklet-row .n {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text);
-  }
-  .booklet-row .badge {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: 2px 6px;
-    border-radius: 20px;
-    text-transform: uppercase;
-  }
-  .booklet-row .badge.ok { background: var(--green-bg); color: var(--green); }
-  .booklet-row .badge.flag { background: var(--amber-bg); color: var(--amber); }
-  .booklet-row .badge.extra { background: var(--amber-bg); color: var(--amber); }
-  .booklet-row .meta {
-    font-family: var(--fm);
-    font-size: 10px;
-    color: var(--text3);
-  }
+  .finish-wrap { flex: 1; padding: 24px 20px; overflow-y: auto; }
+  .success-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--green); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-top: 20px; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .l { font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
+  .summary-row .v { font-weight: 500; font-size: 14px; }
+  .summary-row .v.green { color: var(--green); }
+  .summary-row .v.mono { font-family: var(--fm); font-size: 13px; }
+  .summary-row .v.blue { color: var(--blue); }
 
-  .empty-queue {
-    text-align: center;
-    padding: 32px 12px;
-    color: var(--text3);
-    font-size: 12px;
-    font-style: italic;
-    line-height: 1.6;
-  }
+  .pages-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+  .preview-tile { aspect-ratio: 3/4; background: var(--surface2); border-radius: 6px; overflow: hidden; position: relative; }
+  .preview-tile img { width: 100%; height: 100%; object-fit: cover; }
+  .preview-tile .plabel { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.75); font-size: 9px; color: #fff; text-align: center; padding: 2px; font-weight: 600; }
 
-  /* Actions area */
-  .side-actions {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .sticky-bottom { position: sticky; bottom: 0; padding: 16px 0 0; background: linear-gradient(0deg, var(--bg) 60%, transparent 100%); }
+  .batch-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .batch-stat { background: var(--surface); padding: 14px 8px; text-align: center; }
+  .batch-stat .n { font-family: var(--fd); font-weight: 900; font-size: 26px; line-height: 1; letter-spacing: -0.5px; }
+  .batch-stat .n.green { color: var(--green); }
+  .batch-stat .n.amber { color: var(--amber); }
+  .batch-stat .l { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text2); margin-top: 6px; }
 
-  .feed-btn {
-    height: 72px;
-    background: var(--green);
-    color: var(--bg);
-    border: none;
-    border-radius: 12px;
-    font-family: var(--fb);
-    font-size: 16px; font-weight: 700;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: transform 0.06s ease;
+  /* Sheets status toast */
+  .sheets-toast {
+    position: fixed; bottom: 24px; left: 16px; right: 16px;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; z-index: 300;
+    transform: translateY(120%); transition: transform 0.3s ease;
   }
-  .feed-btn:active { transform: scale(0.98); }
-  .feed-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .feed-btn svg { width: 22px; height: 22px; }
+  .sheets-toast.show { transform: translateY(0); }
+  .sheets-toast .icon { width: 28px; height: 28px; border-radius: 6px; background: #1a6640; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sheets-toast .msg { flex: 1; }
+  .sheets-toast .msg .title { font-weight: 600; color: var(--text); }
+  .sheets-toast .msg .sub { color: var(--text2); font-size: 11px; margin-top: 1px; }
 
-  /* ---------- FLAG REVIEW MODAL ---------- */
-  .modal-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(6px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 100;
+  .upload-overlay {
+    position: fixed; inset: 0; background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(8px); z-index: 200;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
   }
-  .modal-backdrop.active { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    width: 100%;
-    max-width: 600px;
+  .upload-overlay.show { display: flex; }
+  .upload-spinner {
+    width: 56px; height: 56px; border: 3px solid var(--border2);
+    border-top-color: var(--green); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin-bottom: 20px;
   }
-  .modal .eyebrow { color: var(--amber); }
-  .modal h2 {
-    font-family: var(--fd); font-weight: 900;
-    font-size: 28px; letter-spacing: -0.8px;
-    margin-bottom: 6px;
-  }
-  .modal p {
-    color: var(--text2); font-size: 14px;
-    margin-bottom: 20px; line-height: 1.5;
-  }
-
-  .flag-detail {
-    background: var(--amber-bg);
-    border: 1px solid rgba(251,191,36,0.3);
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 20px;
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  .flag-detail svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--amber); margin-top: 1px; }
-  .flag-detail .ft {
-    color: #fcd34d;
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 2px;
-  }
-  .flag-detail .fd {
-    color: var(--text2);
-    font-size: 12px;
-    line-height: 1.5;
-  }
-
-  /* Score confirm */
-  .score-confirm-row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 14px;
-    align-items: end;
-    margin-bottom: 16px;
-  }
-  .sc-col .label {
-    font-size: 10px; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--text2);
-    margin-bottom: 8px;
-    display: block;
-  }
-  .ocr-read {
-    height: 78px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--fd);
-    font-weight: 900;
-    font-size: 38px;
-    color: var(--text);
-    letter-spacing: -1px;
-    position: relative;
-  }
-  .ocr-read .c {
-    position: absolute;
-    top: 6px; right: 8px;
-    font-family: var(--fb);
-    font-size: 9px; font-weight: 600;
-    letter-spacing: 1.5px;
-  }
-  .ocr-read .c.high { color: var(--green); }
-  .ocr-read .c.low { color: var(--amber); }
-  .ocr-arrow { color: var(--text3); padding-bottom: 24px; }
-  .score-input {
-    height: 78px;
-    background: var(--surface2);
-    border: 2px solid var(--green);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: var(--fd);
-    font-weight: 900;
-    font-size: 38px;
-    text-align: center;
-    letter-spacing: -1px;
-    outline: none;
-    width: 100%;
-  }
-  .keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  .key {
-    height: 54px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: var(--fb);
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .key:active { background: var(--border2); transform: scale(0.97); }
-  .key.fn { color: var(--text2); font-size: 12px; font-weight: 500; }
-
-  .modal-actions { display: flex; gap: 10px; }
-  .modal-actions > * { flex: 1; }
-
-  /* ---------- COMPLETE SCREEN ---------- */
-  .complete-wrap {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-  }
-  .complete-card { max-width: 560px; text-align: center; }
-  .check-big {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    background: var(--green);
-    color: var(--bg);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 24px;
-  }
-  .complete-card h2 {
-    font-family: var(--fd); font-weight: 900;
-    font-size: 42px; letter-spacing: -1.5px;
-    line-height: 1.05;
-    margin-bottom: 12px;
-  }
-  .complete-card p {
-    color: var(--text2); font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 28px;
-  }
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 28px;
-  }
-  .stat-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 8px;
-  }
-  .stat-box .n {
-    font-family: var(--fd);
-    font-weight: 900;
-    font-size: 26px;
-    letter-spacing: -0.5px;
-    line-height: 1;
-  }
-  .stat-box .n.green { color: var(--green); }
-  .stat-box .n.amber { color: var(--amber); }
-  .stat-box .l {
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text2);
-    margin-top: 6px;
-  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .upload-overlay h3 { font-family: var(--fd); font-weight: 900; font-size: 24px; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .upload-overlay p { color: var(--text2); font-size: 13px; margin-bottom: 4px; }
+  .upload-overlay .progress { width: 200px; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 16px; }
+  .upload-overlay .progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s ease; }
 
   .hidden { display: none !important; }
-
-  .queue-section::-webkit-scrollbar { width: 4px; }
-  .queue-section::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 </style>
 </head>
 <body>
 
-<!-- ========== SCREEN 1: SETUP ========== -->
-<div class="screen active" id="screen-setup">
+<!-- WELCOME -->
+<div class="screen active" id="screen-welcome">
   <div class="topbar">
     <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
-    <div class="role-pill">Lecturer Station</div>
-    <div class="meta">
-      <span id="clock-1">09:41</span>
-      <span class="status-pill"><span class="dot-indicator"></span>Firebase Online</span>
-    </div>
+    <span class="status" id="fb-status"><span class="dot-ind"></span>Connecting</span>
   </div>
 
-  <div class="setup-wrap">
+  <div class="welcome">
+    <div class="hero">
+      <div class="eyebrow">Lecturer Station</div>
+      <h1>Digitise your <span class="alt">marked scripts.</span></h1>
+      <p class="sub">Every booklet you scan goes straight to the student's Unify profile and the exam results spreadsheet.</p>
+    </div>
+
+    <div id="config-warning" class="hidden"></div>
+    <div id="sheets-config-info" class="hidden"></div>
+
     <div class="setup-card">
-      <div class="eyebrow">Marking Workflow · LASU Engineering</div>
-      <h1>Start scanning a batch.</h1>
-      <p class="sub">Select the course you've finished marking. Feed booklets one at a time. The device handles identity and sorting.</p>
-
-      <div class="info-callout">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        <div><strong>You don't need student IDs.</strong> Every booklet page has a serial number the device reads automatically. Scripts route to the right student based on the invigilator's check-in at the hall.</div>
-      </div>
-
-      <div class="field-group">
+      <div class="field">
         <label class="field-label">Course</label>
-        <select class="field-select" id="course">
-          <option>MEE 351 — Engineering Thermodynamics</option>
-          <option>CPE 401 — Digital Systems Design</option>
-          <option>EEG 324 — Electromagnetic Fields</option>
-          <option>CVE 405 — Structural Analysis</option>
+        <select class="field-select" id="in-course">
+          <option value="MEE 351">MEE 351 — Engineering Thermodynamics</option>
+          <option value="CPE 401">CPE 401 — Digital Systems Design</option>
+          <option value="EEG 324">EEG 324 — Electromagnetic Fields</option>
+          <option value="CVE 405">CVE 405 — Structural Analysis</option>
         </select>
       </div>
-
-      <div class="row">
-        <div class="field-group">
-          <label class="field-label">Session</label>
-          <select class="field-select">
-            <option>2025/2026 · First Semester</option>
-            <option>2025/2026 · Second Semester</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label class="field-label">Pages Per Booklet</label>
-          <select class="field-select" id="pages-expected">
-            <option value="16">16 pages</option>
-            <option value="8">8 pages</option>
-            <option value="24">24 pages</option>
-            <option value="32">32 pages</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Lecturer</label>
+      <div class="field">
+        <label class="field-label">Exam Session</label>
         <select class="field-select">
-          <option>Dr. A. Ogunleye</option>
-          <option>Prof. K. Adeyemi</option>
+          <option>2025/2026 · First Semester</option>
+          <option>2025/2026 · Second Semester</option>
         </select>
       </div>
+      <div class="field">
+        <label class="field-label">Pages per Booklet</label>
+        <select class="field-select" id="in-pages">
+          <option value="4">4 pages (demo)</option>
+          <option value="8">8 pages</option>
+          <option value="16" selected>16 pages</option>
+          <option value="24">24 pages</option>
+        </select>
+      </div>
+    </div>
 
-      <button class="btn" onclick="goTo('screen-capture')">Start Batch →</button>
+    <button class="btn" style="margin-top: 16px;" onclick="startSession()">Start Scanning →</button>
+
+    <div class="info-callout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div><strong>Reminder:</strong> Students were linked to booklets at hall entry. The phone reads the matric number to route the scan. Each scan updates the results spreadsheet automatically.</div>
     </div>
   </div>
 </div>
 
-<!-- ========== SCREEN 2: CAPTURE ========== -->
-<div class="screen" id="screen-capture">
+<!-- LOOKUP -->
+<div class="screen" id="screen-lookup">
   <div class="topbar">
-    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
-    <div class="role-pill">Lecturer Station</div>
-    <div class="meta">
-      <span style="color: var(--text);">MEE 351</span>
-      <span id="clock-2">09:41</span>
-      <span class="status-pill" id="net-status"><span class="dot-indicator"></span>Live Upload</span>
-    </div>
+    <span class="topbar-back" onclick="goTo('screen-welcome')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </span>
+    <div class="title"><span id="tb-course">MEE 351</span> · Scan Booklet</div>
+    <span class="status"><span class="dot-ind"></span><span id="tb-done">0</span> done</span>
   </div>
 
-  <div class="capture-wrap">
-    <!-- Preview -->
-    <div class="preview-pane">
-      <div class="preview-badge">
-        <span class="dot-indicator"></span>
-        <span>LIVE · 1080p</span>
-      </div>
+  <div class="entry-wrap">
+    <div class="step-num">Step 1 · Identify Booklet</div>
+    <h2 class="step-title">Enter matric number.</h2>
+    <p class="step-desc">Type the student's matric number. Any number between <strong style="color: var(--text);">230210000</strong> and <strong style="color: var(--text);">240210000</strong> will work.</p>
 
-      <div class="preview-stage" id="stage">
-        <!-- Content filled by JS per page -->
-        <div class="flash" id="flash"></div>
-      </div>
-
-      <div class="ocr-overlay">
-        <div class="t">Reading</div>
-        <div class="v reading" id="ocr-reading">Waiting for next page...</div>
-        <div class="conf" id="ocr-conf" style="display: none;"></div>
-      </div>
+    <div class="booklet-input-box">
+      <div class="l">Matric Number</div>
+      <input
+        type="text"
+        id="booklet-input"
+        placeholder="230210042"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="off"
+        oninput="onBookletInput()"
+        onkeydown="if(event.key==='Enter') lookupBooklet()"
+      >
     </div>
 
-    <!-- Sidebar -->
-    <div class="capture-side">
-      <div class="side-header">
-        <div class="l">Active Batch</div>
-        <div class="t">Thermodynamics II</div>
-        <div class="m">MEE 351 · 16-pg booklets</div>
-      </div>
-
-      <div class="side-counters">
-        <div class="counter-cell">
-          <div class="n green" id="c-done">0</div>
-          <div class="l">Done</div>
-        </div>
-        <div class="counter-cell">
-          <div class="n" id="c-pages">0</div>
-          <div class="l">Pages</div>
-        </div>
-        <div class="counter-cell">
-          <div class="n amber" id="c-flags">0</div>
-          <div class="l">Flags</div>
-        </div>
-      </div>
-
-      <div class="current-booklet" id="current-booklet-card">
-        <div class="l">Currently Scanning</div>
-        <div class="serial" id="current-serial">—</div>
-        <div class="progress-track">
-          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
-        </div>
-        <div class="progress-meta">
-          <span id="progress-text">0 / 16 pages</span>
-          <span id="progress-student">—</span>
-        </div>
-      </div>
-
-      <div class="queue-section">
-        <div class="queue-head">
-          <span class="t">Booklet Queue</span>
-          <span class="c"><span id="queue-count">0</span> scanned</span>
-        </div>
-        <div id="queue-list">
-          <div class="empty-queue">No booklets scanned yet.<br>Feed the first one through the scanner.</div>
-        </div>
-      </div>
-
-      <div class="side-actions">
-        <button class="feed-btn" id="feed-btn" onclick="feedPage()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/>
-          </svg>
-          <span id="feed-btn-label">Feed Next Page</span>
-        </button>
-        <div class="row">
-          <button class="btn secondary" style="height: 44px; font-size: 12px;" onclick="finishCurrentBooklet()">Finish Booklet</button>
-          <button class="btn ghost" style="height: 44px; font-size: 12px;" onclick="goTo('screen-complete')">End Batch</button>
-        </div>
-      </div>
+    <div class="scan-qr-hint">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <path d="M14 14h3M14 17v4M17 21h4M21 14v3"/>
+      </svg>
+      <span>Try <strong style="color: var(--text2);">230210042</strong> — any matric in the range gets its own profile.</span>
     </div>
+
+    <div id="lookup-error"></div>
+
+    <button class="btn" onclick="lookupBooklet()">Look Up Student →</button>
   </div>
 </div>
 
-<!-- ========== FLAG REVIEW MODAL ========== -->
-<div class="modal-backdrop" id="modal-flag">
-  <div class="modal">
-    <div class="eyebrow">Needs Review</div>
-    <h2 id="flag-title">Confirm the score.</h2>
-    <p id="flag-desc">The OCR confidence was below threshold. Verify the total score on the cover before this booklet is released to the student.</p>
-
-    <div class="flag-detail" id="flag-detail-box">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-      <div>
-        <div class="ft" id="flag-reason">Low OCR confidence on handwritten score</div>
-        <div class="fd" id="flag-detail">Read as "72" with 67% confidence. Manually verify before upload.</div>
-      </div>
-    </div>
-
-    <div class="score-confirm-row">
-      <div class="sc-col">
-        <span class="label">OCR Read</span>
-        <div class="ocr-read">
-          <span id="flag-ocr-value">72</span>
-          <span class="c low" id="flag-ocr-conf">67% CONF</span>
-        </div>
-      </div>
-      <div class="ocr-arrow">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 12h14M13 6l6 6-6 6"/>
-        </svg>
-      </div>
-      <div class="sc-col">
-        <span class="label">Confirmed</span>
-        <input class="score-input" id="flag-score-input" value="72" maxlength="3">
-      </div>
-    </div>
-
-    <div class="keypad">
-      <button class="key" onclick="keypadPress('7')">7</button>
-      <button class="key" onclick="keypadPress('8')">8</button>
-      <button class="key" onclick="keypadPress('9')">9</button>
-      <button class="key" onclick="keypadPress('4')">4</button>
-      <button class="key" onclick="keypadPress('5')">5</button>
-      <button class="key" onclick="keypadPress('6')">6</button>
-      <button class="key" onclick="keypadPress('1')">1</button>
-      <button class="key" onclick="keypadPress('2')">2</button>
-      <button class="key" onclick="keypadPress('3')">3</button>
-      <button class="key fn" onclick="keypadPress('clear')">CLR</button>
-      <button class="key" onclick="keypadPress('0')">0</button>
-      <button class="key fn" onclick="keypadPress('back')">←</button>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn secondary" onclick="closeModal()">Skip For Now</button>
-      <button class="btn" onclick="confirmFlag()">Confirm &amp; Upload →</button>
-    </div>
-  </div>
-</div>
-
-<!-- ========== COMPLETE ========== -->
-<div class="screen" id="screen-complete">
+<!-- CONFIRM -->
+<div class="screen" id="screen-confirm">
   <div class="topbar">
-    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
-    <div class="role-pill">Lecturer Station</div>
-    <div class="meta">
-      <span id="clock-3">09:41</span>
-      <span class="status-pill"><span class="dot-indicator"></span>Batch Complete</span>
-    </div>
+    <span class="topbar-back" onclick="goTo('screen-lookup')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </span>
+    <div class="title">Confirm Student</div>
   </div>
 
-  <div class="complete-wrap">
-    <div class="complete-card">
-      <div class="check-big">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <div class="entry-wrap">
+    <div class="match-card">
+      <div class="match-check">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 13l4 4L19 7"/>
         </svg>
       </div>
-      <div class="eyebrow" style="text-align: center;">Batch Uploaded</div>
-      <h2>Scripts are live.</h2>
-      <p>Every student will see their marked script on Unify within the hour. Flagged scripts are in your review queue.</p>
+      <div class="match-info">
+        <div class="t">Matric Verified</div>
+        <div class="n" id="cf-name">Student #042</div>
+        <div class="m" id="cf-matric">230210042</div>
+      </div>
+    </div>
 
-      <div class="stats-row">
-        <div class="stat-box">
-          <div class="n green" id="final-booklets">12</div>
-          <div class="l">Booklets</div>
+    <div class="setup-card" style="margin-top: 0;">
+      <div style="display: flex; justify-content: space-between; padding: 4px 0; margin-bottom: 10px;">
+        <span style="font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase;">Level / Dept</span>
+        <span style="font-weight: 500;" id="cf-level">—</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 4px 0; margin-bottom: 10px;">
+        <span style="font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase;">Course</span>
+        <span style="font-family: var(--fm); font-size: 13px; color: var(--green);" id="cf-course">MEE 351</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+        <span style="font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase;">Pages Expected</span>
+        <span style="font-weight: 500;" id="cf-pages">16 pages</span>
+      </div>
+    </div>
+
+    <p style="color: var(--text2); font-size: 13px; margin: 20px 0 14px; line-height: 1.5;">
+      Place the booklet cover under the camera. You'll capture the cover first, then each page one at a time.
+    </p>
+
+    <button class="btn" onclick="beginCapture()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 7h3l2-3h8l2 3h3a1 1 0 011 1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V8a1 1 0 011-1z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Start Camera
+    </button>
+    <button class="btn secondary" style="margin-top: 10px;" onclick="goTo('screen-lookup')">Wrong student? Go back</button>
+  </div>
+</div>
+
+<!-- CAMERA -->
+<div class="screen" id="screen-camera">
+  <div class="camera-stage" id="camera-stage">
+    <video id="camera-video" autoplay playsinline muted></video>
+    <canvas id="camera-canvas"></canvas>
+    <img id="captured-img" alt="Captured page">
+
+    <div class="cam-fallback" id="cam-fallback">
+      <div class="icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </div>
+      <h3>Camera not available</h3>
+      <p id="cam-fallback-msg">Grant camera access, or use demo mode to simulate capture.</p>
+      <button class="btn" style="margin-top: 20px; max-width: 240px;" onclick="startCamera()">Retry Camera</button>
+      <button class="btn secondary" style="margin-top: 10px; max-width: 240px;" onclick="enableDemoMode()">Use Demo Mode</button>
+    </div>
+
+    <div class="camera-overlay" id="camera-overlay">
+      <div class="camera-topbar">
+        <span class="cam-back" onclick="exitCamera()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </span>
+        <div class="cam-info">
+          <div class="student" id="cam-student">Student</div>
+          <div class="course" id="cam-course">MEE 351</div>
         </div>
-        <div class="stat-box">
-          <div class="n" id="final-pages">192</div>
-          <div class="l">Pages</div>
-        </div>
-        <div class="stat-box">
-          <div class="n amber" id="final-flags">2</div>
-          <div class="l">Flagged</div>
-        </div>
-        <div class="stat-box">
-          <div class="n" id="final-time">18m</div>
-          <div class="l">Time</div>
+        <div class="page-counter">
+          <span id="cam-pages-done">0</span>/<span id="cam-pages-total">16</span>
         </div>
       </div>
 
-      <div class="row">
-        <button class="btn secondary" onclick="resetBatch()">New Batch</button>
-        <button class="btn" onclick="resetBatch()">Back to Start</button>
+      <div class="current-page-label" id="cam-label">Capture Cover Page</div>
+      <div class="pages-strip" id="pages-strip"></div>
+
+      <div class="camera-bottom" id="camera-bottom">
+        <div class="capture-row">
+          <button class="cap-side-btn" onclick="undoLastPage()" id="undo-btn" style="opacity: 0.4;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 7v6h6M3.51 15a9 9 0 102.13-9.36L3 8"/>
+            </svg>
+          </button>
+          <button class="capture-button cover" id="capture-btn" onclick="capturePage()"></button>
+          <button class="cap-side-btn" onclick="finishBooklet()" id="finish-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 13l4 4L19 7"/>
+            </svg>
+          </button>
+        </div>
       </div>
+
+      <div class="camera-bottom review-bottom hidden" id="review-bottom">
+        <div class="rb-title" id="rb-title">Captured · Page 1</div>
+        <p class="rb-desc" id="rb-desc">Is the page clear? Retake if blurry.</p>
+
+        <div id="review-score-wrap" class="hidden">
+          <div class="score-field-wrap">
+            <div class="l">Score on Cover (OCR read)</div>
+            <div class="row">
+              <input type="number" id="review-score" value="" max="999" inputmode="numeric">
+              <span class="total">/ 100</span>
+            </div>
+            <div class="ocr-confidence" id="ocr-conf-text">Reading…</div>
+          </div>
+        </div>
+
+        <div class="rb-actions">
+          <button class="btn secondary" onclick="retakePage()">Retake</button>
+          <button class="btn" onclick="keepPage()">Keep &amp; Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flash-effect" id="flash"></div>
+  </div>
+</div>
+
+<!-- DONE (per booklet) -->
+<div class="screen" id="screen-done">
+  <div class="topbar">
+    <div class="wordmark">Unify<span class="dot">.</span> Scan</div>
+    <span class="status"><span class="dot-ind"></span>Uploaded</span>
+  </div>
+
+  <div class="finish-wrap">
+    <div class="success-icon">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <div style="font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); font-weight: 600; margin-bottom: 10px;">Booklet Uploaded</div>
+    <h2 class="step-title" id="done-name">Script is live.</h2>
+    <p class="step-desc">It's on the student's Unify profile and in the results spreadsheet.</p>
+
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="l">Student</span>
+        <span class="v" id="done-student">Student #042</span>
+      </div>
+      <div class="summary-row">
+        <span class="l">Matric</span>
+        <span class="v mono" id="done-matric">230210042</span>
+      </div>
+      <div class="summary-row">
+        <span class="l">Pages</span>
+        <span class="v" id="done-pages">16 of 16</span>
+      </div>
+      <div class="summary-row">
+        <span class="l">Score</span>
+        <span class="v green" id="done-score">72 / 100</span>
+      </div>
+      <div class="summary-row" id="done-sheets-row">
+        <span class="l">Spreadsheet</span>
+        <span class="v blue" id="done-sheets-status">—</span>
+      </div>
+    </div>
+
+    <div class="pages-preview-grid" id="done-preview-grid"></div>
+
+    <div class="sticky-bottom">
+      <div class="batch-stats">
+        <div class="batch-stat"><div class="n green" id="bs-done">1</div><div class="l">Scanned</div></div>
+        <div class="batch-stat"><div class="n" id="bs-pages">16</div><div class="l">Pages</div></div>
+        <div class="batch-stat"><div class="n amber" id="bs-flags">0</div><div class="l">Flagged</div></div>
+      </div>
+      <button class="btn" onclick="nextBooklet()">Scan Next Booklet →</button>
+      <button class="btn secondary" style="margin-top: 10px;" onclick="exportCSV()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download Results CSV
+      </button>
+      <button class="btn ghost" style="margin-top: 10px;" onclick="endSession()">End Session</button>
     </div>
   </div>
 </div>
 
+<div class="upload-overlay" id="upload-overlay">
+  <div class="upload-spinner"></div>
+  <h3>Uploading to Unify</h3>
+  <p id="upload-status">Preparing...</p>
+  <div class="progress"><div class="progress-fill" id="upload-progress"></div></div>
+</div>
+
+<!-- Sheets toast notification -->
+<div class="sheets-toast" id="sheets-toast">
+  <div class="icon">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+  </div>
+  <div class="msg">
+    <div class="title" id="sheets-toast-title">Row added to spreadsheet</div>
+    <div class="sub" id="sheets-toast-sub">Student #042 · MEE 351 · 72/100</div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getDatabase, ref, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+  // ============================================================
+  // FIREBASE CONFIG — your unify-scan project
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCG6lqw1QAaB2EnnhN2uCBITXA140YUchs",
+    authDomain: "unify-scan.firebaseapp.com",
+    databaseURL: "https://unify-scan-default-rtdb.firebaseio.com",
+    projectId: "unify-scan",
+    storageBucket: "unify-scan.firebasestorage.app",
+    messagingSenderId: "651408692680",
+    appId: "1:651408692680:web:9e85bdb6f98f6a47085cfd",
+    measurementId: "G-5CP9L39H1C"
+  };
+
+  const isConfigured = firebaseConfig.apiKey !== "PASTE_YOUR_API_KEY_HERE";
+  let db = null;
+  const status = document.getElementById('fb-status');
+
+  if (isConfigured) {
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getDatabase(app);
+      status.innerHTML = '<span class="dot-ind"></span>Connected';
+      status.className = 'status';
+    } catch (err) {
+      console.error('Firebase init failed:', err);
+      status.innerHTML = '<span class="dot-ind"></span>Error';
+      status.className = 'status error';
+    }
+  } else {
+    status.innerHTML = '<span class="dot-ind"></span>Local Only';
+    status.className = 'status warn';
+    const warn = document.getElementById('config-warning');
+    warn.classList.remove('hidden');
+    warn.innerHTML = `<div class="config-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      <div><strong>Firebase not configured</strong>Paste your firebaseConfig values to enable cloud sync.</div>
+    </div>`;
+  }
+
+  window.__firebase_configured = isConfigured;
+  window.__firebase_db = db;
+  window.__firebase_refs = { ref, set, serverTimestamp };
+</script>
+
 <script>
-  // ---------- ROUTING ----------
+  // ============================================================
+  // GOOGLE SHEETS CONFIG
+  //
+  // HOW TO SET UP (5 minutes):
+  //  1. Go to script.google.com → New project
+  //  2. Paste the Apps Script from SETUP-SHEETS.md
+  //  3. Deploy → New deployment → Web app
+  //     Execute as: Me | Who has access: Anyone
+  //  4. Copy the deployment URL and paste below
+  // ============================================================
+  const SHEETS_WEBHOOK_URL = "PASTE_YOUR_EXEC_URL_HERE";
+  const SHEETS_ENABLED = SHEETS_WEBHOOK_URL !== "PASTE_YOUR_EXEC_URL_HERE"
+                      && SHEETS_WEBHOOK_URL.startsWith("https://");
+
+  if (SHEETS_ENABLED) {
+    const el = document.getElementById('sheets-config-info');
+    el.classList.remove('hidden');
+    el.innerHTML = `<div class="sheets-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <div><strong>Spreadsheet connected</strong>Each scan will add a row to your Google Sheet automatically.</div>
+    </div>`;
+  }
+
+  // Sends one row to Google Sheets via Apps Script webhook
+  async function pushToSheets(record) {
+    if (!SHEETS_ENABLED) return { ok: false, reason: 'not configured' };
+    try {
+      const row = {
+        timestamp: record.uploadedAt,
+        matric: record.matric,
+        student_name: record.studentName,
+        level: record.studentLevel,
+        course: record.course,
+        score: record.score != null ? record.score : '',
+        pages_scanned: record.pages.filter(p => !p.isCover).length,
+        pages_expected: record.pagesExpected,
+        flagged: record.flagged ? 'YES' : 'NO',
+        flag_reason: record.flagReason || '',
+        job_id: record.jobId,
+      };
+      // Using no-cors for cross-origin Apps Script webhook.
+      // Apps Script still receives the data and writes the row.
+      await fetch(SHEETS_WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(row),
+      });
+      return { ok: true };
+    } catch (err) {
+      console.error('Sheets push failed:', err);
+      return { ok: false, reason: err.message };
+    }
+  }
+
+  function showSheetsToast(record, ok) {
+    const toast = document.getElementById('sheets-toast');
+    const title = document.getElementById('sheets-toast-title');
+    const sub = document.getElementById('sheets-toast-sub');
+    title.textContent = ok ? 'Row added to spreadsheet ✓' : 'Spreadsheet unavailable — saved locally';
+    sub.textContent = record.studentName + ' · ' + record.course + (record.score != null ? ' · ' + record.score + '/100' : '');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  window.__pushToSheets = pushToSheets;
+  window.__showSheetsToast = showSheetsToast;
+  window.__SHEETS_ENABLED = SHEETS_ENABLED;
+</script>
+
+<script>
+  // ============================================================
+  // CLAUDE VISION OCR — reads handwritten score from cover page
+  // Get a key: https://console.anthropic.com → API Keys
+  // ============================================================
+  const CLAUDE_API_KEY = "PASTE YOUR API KEY";
+  const CLAUDE_OCR_ENABLED = CLAUDE_API_KEY !== "PASTE_YOUR_ANTHROPIC_API_KEY_HERE" && CLAUDE_API_KEY.startsWith("sk-");
+
+  async function ocrScoreFromImage(dataUrl) {
+    if (!CLAUDE_OCR_ENABLED) return { score: null, confidence: 0, raw: 'API key not configured' };
+    const base64 = dataUrl.split(',')[1];
+    const mediaType = (dataUrl.match(/^data:([^;]+);/) || [, 'image/jpeg'])[1];
+    const body = {
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 200,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
+          { type: "text", text:
+            "This is the cover page of a marked exam booklet. A lecturer has written " +
+            "the student's score in red pen, usually as a number like '72' or '72/100'. " +
+            "Read the score and respond with ONLY a JSON object in this exact format:\n" +
+            '{"score": <integer 0-100 or null>, "confidence": <0.0 to 1.0>, "notes": "<short explanation>"}\n' +
+            "If you cannot find a score, set score to null. If the score is out of something " +
+            "other than 100, normalize it (e.g. '18/20' -> 90). Respond with only the JSON, no other text."
+          }
+        ]
+      }]
+    };
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": CLAUDE_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const t = await res.text(); throw new Error(`Claude API ${res.status}: ${t.slice(0,200)}`); }
+    const json = await res.json();
+    const text = (json.content && json.content[0] && json.content[0].text) || '';
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    let parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch (e) {
+      const m = cleaned.match(/\b(\d{1,3})\b/);
+      parsed = { score: m ? parseInt(m[1]) : null, confidence: 0.4, notes: 'Parse fallback' };
+    }
+    return { score: parsed.score, confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.5, raw: parsed.notes || text };
+  }
+
+  // ============================================================
+  // SESSION STATE
+  // ============================================================
+  const state = {
+    session: { course: 'MEE 351', courseTitle: 'Engineering Thermodynamics', pagesExpected: 16 },
+    currentBooklet: null,
+    currentStudent: null,
+    currentPageIndex: 0,
+    capturedPages: [],
+    pendingCapture: null,
+    batchStats: { booklets: 0, pages: 0, flags: 0 },
+    sessionRecords: [],  // all scans this session — used for CSV export
+    demoMode: false,
+  };
+
+  // ============================================================
+  // MATRIC RESOLVER
+  // ============================================================
+  function resolveMatric(matric) {
+    const n = parseInt(matric);
+    if (isNaN(n) || n < 230210000 || n > 240210000) return null;
+    const last3 = String(matric).slice(-3);
+    const year = String(matric).slice(0, 3);
+    const yearMap = { '230': '400L', '231': '400L', '232': '300L', '233': '300L', '234': '200L', '240': '100L' };
+    const level = yearMap[year] || '300L';
+    const depts = ['Computer Eng', 'Mechanical Eng', 'Electrical Eng', 'Civil Eng', 'Chemical Eng'];
+    const dept = depts[parseInt(last3) % depts.length];
+    return { studentUID: 'u_' + matric, matric, name: 'Student #' + last3, level: level + ' · ' + dept };
+  }
+
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
   function goTo(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    if (id === 'screen-capture') {
-      renderPaper(null);
-      updateBookletCard();
-      renderQueue();
-    }
-    if (id === 'screen-complete') {
-      document.getElementById('final-booklets').textContent = state.completedBooklets.length;
-      document.getElementById('final-pages').textContent = state.completedBooklets.reduce((s,b) => s + b.pages.length, 0);
-      document.getElementById('final-flags').textContent = state.completedBooklets.filter(b => b.flagged).length;
-    }
+    if (id !== 'screen-camera') stopCamera();
   }
-  function openModal(id) { document.getElementById(id).classList.add('active'); }
-  function closeModal() { document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active')); }
+  window.goTo = goTo;
 
-  // ---------- CLOCK ----------
-  function updateClocks() {
-    const now = new Date();
-    const s = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    ['clock-1','clock-2','clock-3'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = s; });
+  function startSession() {
+    state.session.course = document.getElementById('in-course').value;
+    const opt = document.getElementById('in-course');
+    state.session.courseTitle = opt.options[opt.selectedIndex].text.split('—')[1]?.trim() || '';
+    state.session.pagesExpected = parseInt(document.getElementById('in-pages').value);
+    document.getElementById('tb-course').textContent = state.session.course;
+    goToLookup();
   }
-  updateClocks(); setInterval(updateClocks, 30000);
+  window.startSession = startSession;
 
-  // ---------- STATE ----------
-  const state = {
-    expectedPages: 16,
-    currentBooklet: null,
-    completedBooklets: [],
-  };
+  function goToLookup() {
+    document.getElementById('tb-done').textContent = state.batchStats.booklets;
+    document.getElementById('booklet-input').value = '';
+    document.getElementById('lookup-error').innerHTML = '';
+    goTo('screen-lookup');
+    setTimeout(() => document.getElementById('booklet-input').focus(), 100);
+  }
 
-  // Mock: what the device "would see" from the invigilator's check-in data
-  // In production: Firestore query on /booklets/{serial} returns studentUID
-  const bookletDB = {
-    'LSU-M351-0417': { student: 'Chidinma Okafor', matric: '190591089', extras: [] },
-    'LSU-M351-0418': { student: 'Samuel Adeyinka', matric: '190591024', extras: ['LSU-M351-0892'] },
-    'LSU-M351-0419': { student: 'Amaka Eze', matric: '200591155', extras: [] },
-    'LSU-M351-0420': { student: 'Tunde Bakare', matric: '190591077', extras: [] },
-  };
+  function onBookletInput() { document.getElementById('lookup-error').innerHTML = ''; }
+  window.onBookletInput = onBookletInput;
 
-  // Mock feed queue — what's actually in the lecturer's pile in the order they'll feed it
-  // Note: we include an out-of-order page to demonstrate the sorting logic
-  const feedSequence = [
-    { serial: 'LSU-M351-0417', pageNum: 1, isCover: true, ocrScore: 72, ocrConf: 0.96 },
-    { serial: 'LSU-M351-0417', pageNum: 2 },
-    { serial: 'LSU-M351-0417', pageNum: 3 },
-    { serial: 'LSU-M351-0417', pageNum: 4 },
-    // Pages 5-16 skipped for demo brevity
-    { serial: 'LSU-M351-0418', pageNum: 1, isCover: true, ocrScore: 58, ocrConf: 0.67, flagged: true, flagReason: 'Low OCR confidence on score grid' },
-    { serial: 'LSU-M351-0418', pageNum: 2 },
-    { serial: 'LSU-M351-0417', pageNum: 5 },   // Out-of-order! This page got mixed in, but device sorts it correctly
-    { serial: 'LSU-M351-0418', pageNum: 3 },
-    { serial: 'LSU-M351-0419', pageNum: 1, isCover: true, ocrScore: 81, ocrConf: 0.94 },
-    { serial: 'LSU-M351-0419', pageNum: 2, isExtra: true, parentSerial: 'LSU-M351-0418' },
-  ];
-  let feedIndex = 0;
-
-  // ---------- FEED A PAGE ----------
-  function feedPage() {
-    if (feedIndex >= feedSequence.length) {
-      alert('Demo sequence complete. Press "End Batch" to finish.');
+  function lookupBooklet() {
+    const matric = document.getElementById('booklet-input').value.trim();
+    if (!matric) return;
+    const student = resolveMatric(matric);
+    if (!student) {
+      document.getElementById('lookup-error').innerHTML = `
+        <div class="error-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <div><strong>Matric not in range.</strong> Accepted: 230210000 to 240210000. Try <em>230210042</em>.</div>
+        </div>`;
       return;
     }
+    state.currentBooklet = matric;
+    state.currentStudent = student;
+    state.currentPageIndex = 0;
+    state.capturedPages = [];
+    document.getElementById('cf-name').textContent = student.name;
+    document.getElementById('cf-matric').textContent = student.matric;
+    document.getElementById('cf-level').textContent = student.level;
+    document.getElementById('cf-course').textContent = state.session.course;
+    document.getElementById('cf-pages').textContent = state.session.pagesExpected + ' pages';
+    goTo('screen-confirm');
+  }
+  window.lookupBooklet = lookupBooklet;
 
-    const page = feedSequence[feedIndex++];
+  // ============================================================
+  // CAMERA
+  // ============================================================
+  let cameraStream = null;
 
-    // Trigger flash
+  async function beginCapture() {
+    document.getElementById('cam-student').textContent = state.currentStudent.name;
+    document.getElementById('cam-course').textContent = state.session.course + ' · ' + state.currentStudent.matric;
+    document.getElementById('cam-pages-done').textContent = 0;
+    document.getElementById('cam-pages-total').textContent = state.session.pagesExpected;
+    updateCameraLabel();
+    renderPagesStrip();
+    goTo('screen-camera');
+    await startCamera();
+  }
+  window.beginCapture = beginCapture;
+
+  async function startCamera() {
+    document.getElementById('cam-fallback').classList.remove('show');
+    document.getElementById('camera-overlay').style.display = 'flex';
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      const video = document.getElementById('camera-video');
+      video.srcObject = cameraStream;
+      await video.play();
+      state.demoMode = false;
+    } catch (err) {
+      console.warn('Camera failed:', err);
+      document.getElementById('cam-fallback').classList.add('show');
+      const msg = err.name === 'NotAllowedError'
+        ? 'Camera permission denied. Use demo mode to simulate capture.'
+        : 'No camera found. Use demo mode.';
+      document.getElementById('cam-fallback-msg').textContent = msg;
+    }
+  }
+  window.startCamera = startCamera;
+
+  function stopCamera() {
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  }
+
+  function enableDemoMode() {
+    state.demoMode = true;
+    document.getElementById('cam-fallback').classList.remove('show');
+  }
+  window.enableDemoMode = enableDemoMode;
+
+  function exitCamera() { stopCamera(); goTo('screen-confirm'); }
+  window.exitCamera = exitCamera;
+
+  function updateCameraLabel() {
+    const idx = state.currentPageIndex;
+    const label = document.getElementById('cam-label');
+    const btn = document.getElementById('capture-btn');
+    if (idx === 0) {
+      label.textContent = 'Capture Cover Page'; label.style.color = 'var(--green)';
+      btn.classList.add('cover');
+    } else {
+      label.textContent = 'Capture Page ' + idx; label.style.color = '#fff';
+      btn.classList.remove('cover');
+    }
+  }
+
+  async function capturePage() {
     const flash = document.getElementById('flash');
-    flash.classList.remove('fire');
-    void flash.offsetWidth;
-    flash.classList.add('fire');
+    flash.classList.remove('fire'); void flash.offsetWidth; flash.classList.add('fire');
+    if (navigator.vibrate) navigator.vibrate(30);
 
-    // Render the paper in preview
-    renderPaper(page);
+    let dataUrl;
+    if (state.demoMode || !cameraStream) {
+      dataUrl = generateDemoPage(state.currentPageIndex);
+    } else {
+      const video = document.getElementById('camera-video');
+      const canvas = document.getElementById('camera-canvas');
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+    }
 
-    // Update OCR overlay
-    setTimeout(() => updateOCR(page), 200);
+    state.pendingCapture = { pageNum: state.currentPageIndex, isCover: state.currentPageIndex === 0, dataUrl };
 
-    // After "processing" delay, route the page
-    setTimeout(() => routePage(page), 900);
+    const img = document.getElementById('captured-img');
+    img.src = dataUrl; img.style.display = 'block';
+
+    document.getElementById('camera-bottom').classList.add('hidden');
+    document.getElementById('review-bottom').classList.remove('hidden');
+
+    const isCover = state.currentPageIndex === 0;
+    document.getElementById('rb-title').textContent = isCover ? 'Captured · Cover Page' : 'Captured · Page ' + state.currentPageIndex;
+    document.getElementById('rb-desc').textContent = isCover ? 'Reading the score from the cover…' : 'Is the page clear? Retake if blurry.';
+
+    const scoreWrap = document.getElementById('review-score-wrap');
+    if (isCover) {
+      scoreWrap.classList.remove('hidden');
+      const scoreInput = document.getElementById('review-score');
+      const confEl = document.getElementById('ocr-conf-text');
+      scoreInput.value = ''; scoreInput.placeholder = '…'; scoreInput.disabled = true;
+      confEl.textContent = CLAUDE_OCR_ENABLED ? 'Reading with Claude Vision…' : 'Enter score manually';
+      confEl.className = 'ocr-confidence';
+
+      if (CLAUDE_OCR_ENABLED) {
+        try {
+          const result = await ocrScoreFromImage(dataUrl);
+          scoreInput.disabled = false;
+          if (result.score != null) {
+            scoreInput.value = result.score;
+            state.pendingCapture.score = result.score;
+            state.pendingCapture.ocrConf = result.confidence;
+            confEl.textContent = Math.round(result.confidence * 100) + '% confidence';
+            confEl.className = result.confidence < 0.8 ? 'ocr-confidence low' : 'ocr-confidence';
+          } else {
+            scoreInput.placeholder = 'Enter score'; state.pendingCapture.score = null; state.pendingCapture.ocrConf = 0;
+            confEl.textContent = 'Score not detected · enter manually'; confEl.className = 'ocr-confidence low';
+          }
+        } catch (err) {
+          console.error('OCR failed:', err);
+          scoreInput.disabled = false; scoreInput.placeholder = 'Enter score';
+          confEl.textContent = 'OCR failed · enter manually'; confEl.className = 'ocr-confidence low';
+          state.pendingCapture.score = null; state.pendingCapture.ocrConf = 0;
+        }
+      } else {
+        scoreInput.disabled = false; scoreInput.placeholder = 'Enter score';
+        state.pendingCapture.score = null; state.pendingCapture.ocrConf = 0;
+      }
+      document.getElementById('rb-desc').textContent = 'Verify the score before moving on.';
+    } else {
+      scoreWrap.classList.add('hidden');
+    }
+    document.querySelectorAll('.crop-corner-cam').forEach(c => c.style.display = 'none');
+  }
+  window.capturePage = capturePage;
+
+  function retakePage() {
+    state.pendingCapture = null;
+    document.getElementById('captured-img').style.display = 'none';
+    document.getElementById('camera-bottom').classList.remove('hidden');
+    document.getElementById('review-bottom').classList.add('hidden');
+    document.querySelectorAll('.crop-corner-cam').forEach(c => c.style.display = 'block');
+  }
+  window.retakePage = retakePage;
+
+  function keepPage() {
+    if (!state.pendingCapture) return;
+    if (state.pendingCapture.isCover) {
+      const s = parseInt(document.getElementById('review-score').value);
+      if (!isNaN(s)) state.pendingCapture.score = s;
+    }
+    state.capturedPages.push(state.pendingCapture);
+    state.pendingCapture = null;
+    state.currentPageIndex++;
+    document.getElementById('captured-img').style.display = 'none';
+    document.getElementById('camera-bottom').classList.remove('hidden');
+    document.getElementById('review-bottom').classList.add('hidden');
+    document.querySelectorAll('.crop-corner-cam').forEach(c => c.style.display = 'block');
+    document.getElementById('cam-pages-done').textContent = state.capturedPages.length;
+    updateCameraLabel();
+    renderPagesStrip();
+    document.getElementById('undo-btn').style.opacity = '1';
+  }
+  window.keepPage = keepPage;
+
+  function undoLastPage() {
+    if (!state.capturedPages.length) return;
+    state.capturedPages.pop();
+    state.currentPageIndex = Math.max(0, state.currentPageIndex - 1);
+    document.getElementById('cam-pages-done').textContent = state.capturedPages.length;
+    updateCameraLabel(); renderPagesStrip();
+    if (!state.capturedPages.length) document.getElementById('undo-btn').style.opacity = '0.4';
+  }
+  window.undoLastPage = undoLastPage;
+
+  function renderPagesStrip() {
+    const strip = document.getElementById('pages-strip');
+    strip.innerHTML = state.capturedPages.map((p, i) => `
+      <div class="mini-page"><img src="${p.dataUrl}" alt="Page ${i}"><div class="pn">${p.isCover ? 'C' : i}</div></div>
+    `).join('');
+    strip.scrollLeft = strip.scrollWidth;
   }
 
-  function updateOCR(page) {
-    const reading = document.getElementById('ocr-reading');
-    const conf = document.getElementById('ocr-conf');
-    reading.classList.remove('reading');
-    reading.textContent = `${page.serial} · Pg ${page.pageNum}`;
-    if (page.isCover && page.ocrScore != null) {
-      conf.style.display = 'block';
-      conf.textContent = `Score: ${page.ocrScore} · ${Math.round(page.ocrConf * 100)}% conf`;
-      conf.className = 'conf ' + (page.ocrConf >= 0.8 ? '' : 'low');
-    } else {
-      conf.style.display = 'none';
+  // ============================================================
+  // FINISH BOOKLET — uploads to Firebase + Sheets
+  // ============================================================
+  async function finishBooklet() {
+    if (!state.capturedPages.length) { alert('Capture at least the cover page first.'); return; }
+    const coverPage = state.capturedPages.find(p => p.isCover);
+    const nonCoverCount = state.capturedPages.filter(p => !p.isCover).length;
+
+    let flagged = false, flagReason = null;
+    if (nonCoverCount < state.session.pagesExpected) {
+      flagged = true;
+      flagReason = `Only ${nonCoverCount} of ${state.session.pagesExpected} pages scanned`;
+      if (!confirm(`Only ${nonCoverCount} of ${state.session.pagesExpected} pages scanned. Flag and continue?`)) return;
     }
+    if (coverPage && coverPage.ocrConf != null && coverPage.ocrConf < 0.8) {
+      flagged = true;
+      flagReason = (flagReason ? flagReason + '; ' : '') + 'Low OCR confidence';
+    }
+
+    const jobId = 'job_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const record = {
+      jobId,
+      matric: state.currentStudent.matric,
+      studentUID: state.currentStudent.studentUID,
+      studentName: state.currentStudent.name,
+      studentLevel: state.currentStudent.level,
+      booklet: state.currentBooklet,
+      course: state.session.course,
+      courseTitle: state.session.courseTitle,
+      pagesExpected: state.session.pagesExpected,
+      score: coverPage ? (coverPage.score ?? null) : null,
+      pages: state.capturedPages.map((p, i) => ({
+        index: i, isCover: p.isCover,
+        label: p.isCover ? 'Cover' : 'Page ' + p.pageNum,
+        dataUrl: p.dataUrl,
+      })),
+      flagged, flagReason,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    await uploadRecord(record);
   }
+  window.finishBooklet = finishBooklet;
 
-  function routePage(page) {
-    // Determine which booklet this page belongs to (handles out-of-order)
-    let targetSerial = page.serial;
-    let studentInfo = bookletDB[targetSerial];
+  async function uploadRecord(record) {
+    const overlay = document.getElementById('upload-overlay');
+    const statusEl = document.getElementById('upload-status');
+    const progress = document.getElementById('upload-progress');
+    overlay.classList.add('show');
+    statusEl.textContent = 'Preparing...'; progress.style.width = '15%';
 
-    // Handle extra sheet: route to parent booklet's owner
-    if (page.isExtra && page.parentSerial) {
-      studentInfo = bookletDB[page.parentSerial];
-      targetSerial = page.parentSerial; // Store under parent for page count integrity
-    }
+    // 1. LocalStorage backup
+    try {
+      const key = 'unify_scan_records';
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      existing.unshift(record);
+      localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)));
+    } catch (e) { /* quota — ok */ }
+    progress.style.width = '30%';
 
-    if (!studentInfo) {
-      // Unknown booklet — flag for manual review
-      console.warn('Unknown booklet serial:', page.serial);
-      return;
-    }
-
-    // Find or create booklet entry
-    let booklet = state.completedBooklets.find(b => b.serial === targetSerial);
-    if (!booklet) {
-      booklet = {
-        serial: targetSerial,
-        student: studentInfo.student,
-        matric: studentInfo.matric,
-        pages: [],
-        extras: [],
-        flagged: false,
-        score: null,
-        ocrConf: null,
-      };
-      state.completedBooklets.push(booklet);
-    }
-
-    // Add page
-    if (page.isExtra) {
-      booklet.extras.push({ serial: page.serial, pageNum: page.pageNum });
-    } else {
-      booklet.pages.push({ pageNum: page.pageNum, isCover: page.isCover });
-    }
-
-    // Capture score from cover
-    if (page.isCover && page.ocrScore != null) {
-      booklet.score = page.ocrScore;
-      booklet.ocrConf = page.ocrConf;
-      if (page.flagged || page.ocrConf < 0.8) {
-        booklet.flagged = true;
-        booklet.flagReason = page.flagReason || 'Low OCR confidence on score grid';
+    // 2. Firebase Realtime Database
+    let firebaseOk = false;
+    if (window.__firebase_configured && window.__firebase_db) {
+      try {
+        statusEl.textContent = 'Uploading to Firebase...'; progress.style.width = '55%';
+        const { ref, set, serverTimestamp } = window.__firebase_refs;
+        const db = window.__firebase_db;
+        // Store lightweight record (no image dataUrls — those go to Storage in prod)
+        const lightRecord = { ...record, pages: record.pages.map(p => ({ ...p, dataUrl: '' })) };
+        await set(ref(db, 'scanJobs/' + record.jobId), {
+          ...lightRecord,
+          uploadedAt: serverTimestamp(),
+        });
+        firebaseOk = true;
+        progress.style.width = '75%';
+      } catch (err) {
+        console.error('Firebase upload failed:', err);
       }
     }
 
-    // Set as active booklet (the one the lecturer is currently feeding)
-    // Only change "active" if this isn't a page from a previously-completed booklet
-    state.currentBooklet = booklet;
-
-    renderQueue();
-    updateBookletCard();
-    updateCounters();
-
-    // Auto-prompt flag modal if this is the cover and flagged
-    if (page.isCover && booklet.flagged) {
-      setTimeout(() => showFlagModal(booklet), 300);
+    // 3. Google Sheets
+    let sheetsOk = false;
+    if (window.__SHEETS_ENABLED) {
+      statusEl.textContent = 'Updating spreadsheet...'; progress.style.width = '88%';
+      const result = await window.__pushToSheets(record);
+      sheetsOk = result.ok;
     }
 
-    // Check for page count integrity (every few pages)
-    checkIntegrity();
-  }
+    progress.style.width = '100%';
+    statusEl.textContent = 'Done!';
+    await new Promise(r => setTimeout(r, 500));
+    overlay.classList.remove('show');
+    progress.style.width = '0%';
 
-  function checkIntegrity() {
-    // In a real system: after N seconds of no new pages for a booklet,
-    // verify page count matches expected. Flag if mismatch.
-    // Here we just update UI state.
-  }
+    // Show sheets toast
+    if (window.__SHEETS_ENABLED) window.__showSheetsToast(record, sheetsOk);
 
-  function finishCurrentBooklet() {
-    if (!state.currentBooklet) return;
-    const b = state.currentBooklet;
-    const totalScanned = b.pages.length + b.extras.length;
-    const expected = state.expectedPages;
+    // Update session records for CSV export
+    state.sessionRecords.push(record);
 
-    if (b.pages.length < expected && !b.flagged) {
-      b.flagged = true;
-      b.flagReason = `Incomplete booklet: only ${b.pages.length} of ${expected} pages scanned`;
-      renderQueue();
-      updateCounters();
-      alert(`Booklet ${b.serial} is incomplete (${b.pages.length}/${expected} pages). Flagged for review.`);
-    }
-    state.currentBooklet = null;
-    updateBookletCard();
-  }
+    // Populate done screen
+    const coverPage = record.pages.find(p => p.isCover);
+    const nonCoverCount = record.pages.filter(p => !p.isCover).length;
+    state.batchStats.booklets++;
+    state.batchStats.pages += record.pages.length;
+    if (record.flagged) state.batchStats.flags++;
 
-  // ---------- RENDERING ----------
-  function renderPaper(page) {
-    const stage = document.getElementById('stage');
-    if (!page) {
-      stage.innerHTML = `
-        <div class="paper-content" style="align-items: center; justify-content: center; color: #999; font-style: italic; font-size: 11px;">
-          No page in frame
-        </div>
-        <div class="flash" id="flash"></div>
-      `;
-      return;
-    }
+    document.getElementById('done-name').textContent = state.currentStudent.name + "'s script is live.";
+    document.getElementById('done-student').textContent = state.currentStudent.name;
+    document.getElementById('done-matric').textContent = state.currentStudent.matric;
+    document.getElementById('done-pages').textContent = nonCoverCount + ' of ' + state.session.pagesExpected;
+    document.getElementById('done-score').textContent = record.score != null ? record.score + ' / 100' : '—';
+    document.getElementById('bs-done').textContent = state.batchStats.booklets;
+    document.getElementById('bs-pages').textContent = state.batchStats.pages;
+    document.getElementById('bs-flags').textContent = state.batchStats.flags;
 
-    let extraTag = '';
-    if (page.isExtra) extraTag = ' (extra)';
-
-    let coverMarks = '';
-    if (page.isCover && page.ocrScore != null) {
-      coverMarks = `
-        <div class="score-grid">
-          <div class="gl">Total</div>
-          <div class="gv">${page.ocrScore}/100</div>
-        </div>
-      `;
-    }
-
-    let bodyLines = '';
-    if (page.isCover) {
-      bodyLines = `
-        <div class="paper-line short"></div>
-        <div class="paper-line" style="margin-top: 12px; width: 50%;"></div>
-        <div class="paper-line tiny"></div>
-        <div class="paper-line short"></div>
-        <div class="paper-line" style="margin-top: 20px; width: 40%;"></div>
-        <div class="paper-line tiny"></div>
-      `;
+    const sheetsStatus = document.getElementById('done-sheets-status');
+    if (!window.__SHEETS_ENABLED) {
+      sheetsStatus.textContent = 'Not configured';
+      sheetsStatus.style.color = 'var(--text3)';
+    } else if (sheetsOk) {
+      sheetsStatus.textContent = 'Row added ✓';
+      sheetsStatus.style.color = 'var(--blue)';
     } else {
-      bodyLines = `
-        <div class="paper-line mid"></div>
-        <div class="paper-line"></div>
-        <div class="paper-line short"></div>
-        <div class="paper-line mid"></div>
-        <div class="paper-line"></div>
-        <div class="paper-line tiny"></div>
-        <div class="paper-line short"></div>
-        <div class="paper-line mid"></div>
-        <div class="paper-line"></div>
-      `;
+      sheetsStatus.textContent = 'Will retry on next upload';
+      sheetsStatus.style.color = 'var(--amber)';
     }
 
-    stage.innerHTML = `
-      <div class="paper-content">
-        <div class="paper-header">
-          <div>
-            <div class="paper-title">MEE 351 — Engineering Thermodynamics</div>
-            <div class="paper-meta">${page.isCover ? 'FINAL EXAM · COVER PAGE' : 'Page ' + page.pageNum + extraTag} · 2025/2026</div>
-          </div>
-          <div class="paper-qr"></div>
-        </div>
-        <div class="paper-body">${bodyLines}</div>
-      </div>
-      ${coverMarks}
-      <div class="booklet-tag">${page.serial} · p${page.pageNum}</div>
-      <div class="crop-corner tl"></div>
-      <div class="crop-corner tr"></div>
-      <div class="crop-corner bl"></div>
-      <div class="crop-corner br"></div>
-      <div class="flash" id="flash"></div>
-    `;
+    const grid = document.getElementById('done-preview-grid');
+    grid.innerHTML = state.capturedPages.map(p => `
+      <div class="preview-tile">
+        <img src="${p.dataUrl}" alt="${p.isCover ? 'Cover' : 'Page ' + p.pageNum}">
+        <div class="plabel">${p.isCover ? 'COVER' : 'P' + p.pageNum}</div>
+      </div>`).join('');
+
+    stopCamera();
+    goTo('screen-done');
   }
 
-  function updateBookletCard() {
-    const b = state.currentBooklet;
-    const card = document.getElementById('current-booklet-card');
-    if (!b) {
-      document.getElementById('current-serial').textContent = '—';
-      document.getElementById('progress-fill').style.width = '0%';
-      document.getElementById('progress-text').textContent = `0 / ${state.expectedPages} pages`;
-      document.getElementById('progress-student').textContent = '—';
-      return;
+  function nextBooklet() {
+    state.currentBooklet = null; state.currentStudent = null;
+    state.currentPageIndex = 0; state.capturedPages = [];
+    goToLookup();
+  }
+  window.nextBooklet = nextBooklet;
+
+  // ============================================================
+  // CSV EXPORT
+  // Downloads a spreadsheet of all scans from this session.
+  // Opens in Excel / Google Sheets.
+  // ============================================================
+  function exportCSV() {
+    if (!state.sessionRecords.length) { alert('No scans in this session yet.'); return; }
+
+    const headers = [
+      'Timestamp', 'Matric No.', 'Student Name', 'Level / Dept',
+      'Course', 'Score (/100)', 'Pages Scanned', 'Pages Expected',
+      'Flagged', 'Flag Reason', 'Job ID'
+    ];
+    const rows = state.sessionRecords.map(r => [
+      r.uploadedAt,
+      r.matric,
+      r.studentName,
+      r.studentLevel,
+      r.course,
+      r.score != null ? r.score : '',
+      r.pages.filter(p => !p.isCover).length,
+      r.pagesExpected,
+      r.flagged ? 'YES' : 'NO',
+      r.flagReason || '',
+      r.jobId
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const date = new Date().toISOString().slice(0, 10);
+    a.download = `unify-scan_${state.session.course.replace(' ', '-')}_${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  window.exportCSV = exportCSV;
+
+  function endSession() {
+    if (!confirm('End this scanning session?')) return;
+    if (state.sessionRecords.length > 0) {
+      if (confirm('Download a CSV of this session\'s results before closing?')) exportCSV();
     }
-    document.getElementById('current-serial').textContent = b.serial;
-    const count = b.pages.length;
-    const pct = Math.min(100, (count / state.expectedPages) * 100);
-    document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('progress-text').textContent = `${count} / ${state.expectedPages} pages${b.extras.length ? ' + ' + b.extras.length + ' extra' : ''}`;
-    document.getElementById('progress-student').textContent = b.student;
+    state.batchStats = { booklets: 0, pages: 0, flags: 0 };
+    state.sessionRecords = [];
+    goTo('screen-welcome');
   }
+  window.endSession = endSession;
 
-  function renderQueue() {
-    const list = document.getElementById('queue-list');
-    document.getElementById('queue-count').textContent = state.completedBooklets.length;
-    if (!state.completedBooklets.length) {
-      list.innerHTML = '<div class="empty-queue">No booklets scanned yet.<br>Feed the first one through the scanner.</div>';
-      return;
+  // ============================================================
+  // DEMO PAGE GENERATOR
+  // ============================================================
+  function generateDemoPage(pageIndex) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 600; canvas.height = 848;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#fdfcf8'); grad.addColorStop(1, '#f5f1e8');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#111'; ctx.font = 'bold 18px Georgia, serif';
+    ctx.fillText('LAGOS STATE UNIVERSITY', 40, 50);
+    ctx.font = '12px Arial'; ctx.fillStyle = '#666';
+    ctx.fillText('Faculty of Engineering', 40, 70);
+    ctx.fillStyle = '#111'; ctx.fillRect(canvas.width - 80, 30, 50, 50);
+    ctx.fillStyle = '#fdfcf8';
+    for (let y = 0; y < 50; y += 8) for (let x = 0; x < 50; x += 8) { if (Math.random() > 0.5) ctx.fillRect(canvas.width - 80 + x, 30 + y, 6, 6); }
+    ctx.fillStyle = '#666'; ctx.font = '10px monospace';
+    ctx.fillText(state.currentBooklet + ' · p' + pageIndex, 40, canvas.height - 30);
+    ctx.strokeStyle = '#c8c5bc'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(40, 100); ctx.lineTo(canvas.width - 40, 100); ctx.stroke();
+    if (pageIndex === 0) {
+      ctx.fillStyle = '#111'; ctx.font = 'bold 22px Georgia, serif';
+      ctx.fillText(state.session.course + ' — ' + state.session.courseTitle, 40, 160);
+      ctx.font = '14px Arial'; ctx.fillStyle = '#333'; ctx.fillText('FINAL EXAM · 2025/2026', 40, 190);
+      ctx.font = '13px Arial'; ctx.fillStyle = '#555';
+      ctx.fillText('Student: ' + state.currentStudent.name, 40, 240);
+      ctx.fillText('Matric No.: ' + state.currentStudent.matric, 40, 270);
+      ctx.fillText('Level: ' + state.currentStudent.level, 40, 300);
+      ctx.save(); ctx.translate(canvas.width - 140, 160); ctx.rotate(-0.1);
+      ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 3; ctx.strokeRect(0, 0, 110, 60);
+      ctx.fillStyle = '#dc2626'; ctx.font = 'italic bold 32px Georgia, serif'; ctx.fillText('72/100', 8, 42);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#111'; ctx.font = 'bold 14px Arial'; ctx.fillText('Question ' + pageIndex, 40, 140);
+      ctx.font = '12px Arial'; ctx.fillStyle = '#444';
+      const lines = ['Derive the expression for thermal efficiency of a Carnot cycle', 'operating between T_h and T_c.', '', 'Solution:', '', 'η = 1 − T_c / T_h', '', 'With T_h = 600K, T_c = 300K:', '', '  η = 1 − 300/600 = 0.5 = 50%'];
+      lines.forEach((l, i) => ctx.fillText(l, 40, 170 + i * 22));
+      ctx.strokeStyle = '#dc2626'; ctx.fillStyle = '#dc2626'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(canvas.width - 80, 380, 20, 0, Math.PI * 2); ctx.stroke();
+      ctx.font = 'italic bold 22px Georgia, serif'; ctx.fillText('✓', canvas.width - 92, 390);
+      ctx.save(); ctx.translate(canvas.width - 100, canvas.height - 100); ctx.rotate(-0.08);
+      ctx.font = 'italic bold 20px Georgia, serif'; ctx.fillText('15/20', 0, 0); ctx.restore();
     }
-    list.innerHTML = state.completedBooklets.slice().reverse().map(b => {
-      const isActive = state.currentBooklet === b;
-      const cls = isActive ? 'active' : (b.flagged ? 'flagged' : '');
-      const badge = b.flagged ? '<span class="badge flag">Flag</span>' : (isActive ? '<span class="badge ok">Active</span>' : '<span class="badge ok">Done</span>');
-      const extraNote = b.extras.length ? ` + ${b.extras.length} extra` : '';
-      return `
-        <div class="booklet-row ${cls}">
-          <div class="booklet-row-head">
-            <span class="n">${b.student}</span>
-            ${badge}
-          </div>
-          <div class="meta">${b.serial} · ${b.pages.length}/${state.expectedPages}${extraNote}${b.score != null ? ' · ' + b.score + '/100' : ''}</div>
-        </div>
-      `;
-    }).join('');
+    return canvas.toDataURL('image/jpeg', 0.72);
   }
 
-  function updateCounters() {
-    const done = state.completedBooklets.filter(b => b !== state.currentBooklet || b.pages.length >= state.expectedPages);
-    document.getElementById('c-done').textContent = done.length;
-    document.getElementById('c-pages').textContent = state.completedBooklets.reduce((s,b) => s + b.pages.length + b.extras.length, 0);
-    document.getElementById('c-flags').textContent = state.completedBooklets.filter(b => b.flagged).length;
-  }
-
-  // ---------- FLAG MODAL ----------
-  let pendingFlagBooklet = null;
-  function showFlagModal(booklet) {
-    pendingFlagBooklet = booklet;
-    document.getElementById('flag-title').textContent = 'Confirm the score.';
-    document.getElementById('flag-reason').textContent = booklet.flagReason || 'Needs manual review';
-    document.getElementById('flag-detail').textContent = `Student: ${booklet.student} (${booklet.matric}) · Booklet ${booklet.serial}`;
-    document.getElementById('flag-ocr-value').textContent = booklet.score ?? '??';
-    const confEl = document.getElementById('flag-ocr-conf');
-    if (booklet.ocrConf != null) {
-      confEl.textContent = Math.round(booklet.ocrConf * 100) + '% CONF';
-      confEl.className = 'c ' + (booklet.ocrConf >= 0.8 ? 'high' : 'low');
-    }
-    document.getElementById('flag-score-input').value = booklet.score ?? '';
-    openModal('modal-flag');
-  }
-
-  function keypadPress(k) {
-    const input = document.getElementById('flag-score-input');
-    if (k === 'clear') { input.value = ''; return; }
-    if (k === 'back') { input.value = input.value.slice(0, -1); return; }
-    if (input.value.length >= 3) return;
-    input.value += k;
-  }
-
-  function confirmFlag() {
-    if (!pendingFlagBooklet) { closeModal(); return; }
-    const v = parseInt(document.getElementById('flag-score-input').value);
-    if (isNaN(v)) { alert('Enter a valid score.'); return; }
-    pendingFlagBooklet.score = v;
-    pendingFlagBooklet.flagged = false; // resolved
-    pendingFlagBooklet.flagReason = null;
-    pendingFlagBooklet = null;
-    closeModal();
-    renderQueue();
-    updateCounters();
-  }
-
-  function resetBatch() {
-    state.currentBooklet = null;
-    state.completedBooklets = [];
-    feedIndex = 0;
-    goTo('screen-setup');
-  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopCamera(); });
+  window.addEventListener('beforeunload', (e) => { if (state.capturedPages.length > 0) { e.preventDefault(); e.returnValue = ''; } });
 </script>
 
 </body>
