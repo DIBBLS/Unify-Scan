@@ -1,107 +1,180 @@
-# Unify-Scan
-# Unify Scan — Frontend Reference
+# 📄 Unify Scan
 
-Three vanilla HTML/CSS/JS interfaces matching the procedure. Each is fully self-contained, drops into the existing Unify codebase with no framework dependencies.
+**Unify Scan** is a smart exam processing system that allows lecturers to scan student scripts, automatically extract scores using AI, and store results in real-time.
 
-## The corrected flow
+It replaces manual result entry with a fast, reliable, and scalable workflow — and gives students full transparency into their marked work.
 
-1. **Hall entry** — Invigilator links matric number ↔ booklet serial as students walk in.
-2. **Lecturer station** — Lecturer marks, feeds booklets into scanner. Device reads booklet number off every page and routes automatically. No ID scanning here.
-3. **Student profile** — Student sees marked script on their Unify profile, including any extra sheets they requested mid-exam.
+---
 
-## 1. `hall-entry.html` — Invigilator station
+## 🚀 The Problem
 
-Two-step flow per student:
-- **Step 1:** Scan/type matric number → device looks up student in Firestore.
-- **Step 2:** Scan booklet QR → writes `bookletID → studentUID` link to `/booklets/{bookletID}`.
+Every exam season, a broken system puts thousands of students at risk.
 
-Handles:
-- **Duplicate check-in** — blocks if student already has a booklet.
-- **Duplicate booklet** — blocks if serial already issued to someone else.
-- **Extra sheets** — dedicated modal for mid-exam requests. Links the extra booklet to the student AND tags it as a child of their main booklet.
-- **Live issue log** on the right sidebar, counters for students + extras.
+**Exam officers** are responsible for stacks of physical scripts — sometimes thousands of them. If even one goes missing, the blame falls on them. There's no audit trail, no backup, no accountability layer. Just paper and pressure.
 
-Firebase writes:
+**Students** hand over months of hard work with zero transparency:
+- A high-performing student applying for a scholarship has no way to verify their score
+- Results can change between marking and entry — with no way to challenge it
+- A single clerical error can derail an academic record built over years
+- There is **no receipt, no record, no recourse**
+
+Lecturers, meanwhile, spend hours:
+- Carrying and sorting stacks of scripts
+- Manually recording scores one by one
+- Making input errors that ripple downstream
+
+This process is slow, stressful, and — for students — completely opaque.
+
+---
+
+## 💡 The Solution
+
+Unify Scan digitises the moment a script is marked, creating a permanent, verifiable record the instant a score is captured.
+
+1. 📷 Scan student script using phone camera
+2. 🤖 AI reads the score (e.g. `70/100`)
+3. ✅ Lecturer confirms or edits
+4. ☁️ Data is saved instantly to Firebase
+5. 📊 Results appear in Google Sheets automatically
+6. 👨‍🎓 Student can view their marked script in real-time
+
+No more lost scripts. No more disputed scores. No more guesswork.
+
+---
+
+## ⚙️ Features
+
+| Feature | Description |
+|---|---|
+| 🔍 **AI OCR (Claude API)** | Reads handwritten or printed scores from scanned scripts |
+| 📊 **Google Sheets Integration** | Auto-logs timestamp, student name, score, and image reference |
+| 🔥 **Firebase Sync** | Real-time data storage and instant student access |
+| 📁 **CSV Export** | Download all session results as a backup instantly |
+| 👁️ **Student Script Viewer** | Students can see every page of their marked script |
+| 🏛️ **Hall Entry Management** | Track and log student attendance at the exam hall |
+| 📱 **Mobile-first PWA** | Works directly on a lecturer's phone, no app install needed |
+
+---
+
+## 🧠 How It Works
+
 ```
-/booklets/{bookletSerial} = {
-  studentUID, matric, name,
-  courseCode, session, hall,
-  issuedBy, issuedAt,
-  isExtra: false,
-  parentBooklet: null  // set if isExtra: true
-}
-```
-
-## 2. `lecturer.html` — Scanning station
-
-Key correction from my first pass: **the lecturer does nothing identity-related**. They just feed pages. The device:
-
-1. Captures the page image.
-2. Reads the booklet serial printed in the corner (OCR/QR).
-3. Reads the score grid on the cover (OCR with confidence).
-4. Looks up the booklet in Firestore → resolves to `studentUID`.
-5. Uploads page to Storage at `/scripts/{studentUID}/{courseCode}/p{N}.jpg`.
-6. If OCR confidence < threshold → flag the booklet for lecturer review.
-
-What the interface shows:
-- **Live preview** of the current page being fed, with OCR reading overlay (serial + score + confidence).
-- **Queue sidebar** showing every booklet scanned so far with student name, page count, and flag status.
-- **"Currently scanning"** card tracks the active booklet's page count against expected (16/16).
-- **Feed Next Page** button (demo stand-in for the physical feeder advancing).
-- **Flag modal** pops up automatically when a cover page has low OCR confidence — lecturer confirms score via keypad.
-
-Out-of-order handling is built in. The demo feed sequence includes a page from booklet 0417 arriving AFTER booklet 0418 pages — the queue still sorts it correctly into booklet 0417.
-
-Extra sheets arrive with their parent booklet's serial tagged — the UI groups them under the main script in the queue.
-
-Page count integrity check: when lecturer taps "Finish Booklet" with fewer pages than expected, auto-flag with reason "Incomplete booklet".
-
-## 3. `student.html` — Script viewer in profile
-
-Two views:
-- **List** — all scripts as cards with color-coded scores. "+4 extra pages" tag shows when student used extras. NEW tag for unseen scripts.
-- **Viewer** — thumbnail rail groups pages into "Main Booklet" and "Extra Sheets" sections so students understand what they're looking at. Paper render includes the small booklet serial tag at the bottom corner (matches the physical paper).
-
-The CPE 401 script in the demo has extra sheets attached. Open it to see the "Extra Sheets" group in the thumbnail rail.
-
-Keyboard nav: ←/→/Esc.
-
-## What a backend dev needs to build
-
-**Hall entry station:**
-- Firestore read: `/students/{matric}` → name, level, dept
-- Firestore write: `/booklets/{serial}` with the linkage record
-- Duplicate guards on both matric and booklet
-
-**Lecturer station (device-side, Python on the Pi):**
-- Camera capture via GPIO button press
-- Per-page OCR: (1) booklet serial in corner, (2) score on cover
-- For each page: `booklets/{serial}` lookup → get `studentUID` → upload to Storage
-- Local SQLite buffer for offline mode — queue uploads when connection drops, flush on reconnect
-- Set `flagged: true` when OCR confidence < 0.80
-
-**Firestore collections:**
-```
-/booklets/{serial}        — written at hall entry, read at scanning
-/scanJobs/{jobId}         — one per booklet per exam; contains pages[], scoreConfirmed, flagged
-/processSessions/{sid}    — one per scanning batch (lecturer's session)
+Camera → AI (Claude) → Lecturer Confirms → Firebase → Google Sheets → Student View
 ```
 
-**Student-side reads** (the existing Unify app):
-- `scanJobs where studentUID == currentUser.uid` → list view
-- Individual `scanJobs/{jobId}` → viewer
-- Pages render from their Storage URLs (in the prototype they're fake-drawn; in production swap `renderPaperFor` for an `<img>` tag)
+The lecturer scans a script page. Claude extracts the score. The lecturer confirms it. Firebase stores everything in real-time. The student can immediately view their script and score with full transparency.
 
-**Security rules** the dev will need:
-- Device has `isDevice: true` custom claim → can write to `/booklets` and `/scanJobs`
-- Students can read only their own `scanJobs`
-- Lecturers can read/flag-update `scanJobs` for their courses
+---
 
-## Fonts
-Google Fonts: Playfair Display + DM Sans only, per brand kit.
+## 🛠️ Tech Stack
 
-## Demo paths
+| Layer | Technology |
+|---|---|
+| Frontend | HTML, JavaScript (PWA) |
+| AI OCR | Anthropic Claude API |
+| Backend | Firebase (Firestore) |
+| Spreadsheet | Google Apps Script (Web App) |
+| Hosting | Netlify |
 
-- `hall-entry.html` — use matric `190591089` (Chidinma) for the smooth path. Try duplicates to see guards fire.
-- `lecturer.html` — press "Feed Next Page" 10 times. Page 7 is intentionally out-of-order (belongs to booklet 0417, fed between booklet 0418 pages) to demonstrate sorting. Booklet 0418's cover is deliberately low-confidence to trigger the flag modal.
-- `student.html` — click into "CPE 401" to see extra sheets grouped separately in the thumbnail rail.
+---
+
+## 📁 Project Structure
+
+```
+/
+├── index.html          # Landing page — role selector
+├── Lecturer.html       # Scanning station — capture & confirm scores
+├── Student.html        # Script viewer — student-facing result view
+├── Hall_entry.html     # Hall entry management
+└── README.md
+```
+
+---
+
+## 🔑 Setup Instructions
+
+### 1. Add Claude API Key
+
+In `Lecturer.html`:
+
+```javascript
+const CLAUDE_API_KEY = "YOUR_API_KEY_HERE";
+```
+
+### 2. Set Up Google Sheets Webhook
+
+1. Create a Google Sheet
+2. Go to **Extensions → Apps Script**
+3. Add your script (OCR + `appendRow` logic)
+4. Deploy as **Web App**
+   - Execute as: **Me**
+   - Access: **Anyone**
+5. Copy the `/exec` URL
+
+### 3. Connect the Webhook
+
+In `Lecturer.html`:
+
+```javascript
+const SHEETS_WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE";
+```
+
+### 4. Deploy
+
+Upload the project to Netlify and open on a mobile device.
+
+---
+
+## 🧪 Demo Instructions
+
+1. Open the **Lecturer** interface
+2. Capture a script with a visible score (e.g. `70/100`)
+3. Confirm the extracted score
+4. Verify:
+   - Firebase updated in real-time
+   - New row added to Google Sheet
+5. Switch to the **Student** interface to view the result
+
+---
+
+## 🔒 Security Note
+
+API keys are **not included** in this repository. Insert your own keys before running the project locally or deploying.
+
+---
+
+## 🌍 Why This Matters
+
+Unify Scan is not just a time-saving tool — it's an accountability layer for a system that currently has none.
+
+- Students get a verifiable record of their marked work
+- Exam officers are protected by a digital audit trail
+- Lecturers save hours of manual data entry
+- Institutions move toward transparent, scalable digital workflows
+
+Every student who works hard deserves to know their score is safe, accurate, and challengeable. Unify Scan makes that possible.
+
+---
+
+## 🚧 Future Improvements
+
+- Automatic student identification via ID scan
+- AI grading assistance
+- Analytics dashboard for lecturers
+- Score dispute and appeal workflow
+- Integration with the broader Unify academic platform
+
+---
+
+## 👤 Author
+
+**Joshua Olotuche**
+Electronic & Computer Engineering Student
+Lagos State University
+
+---
+
+## 🏁 Status
+
+**Hackathon Demo — Ready ✅**
+Real-world deployment in progress 🚀
