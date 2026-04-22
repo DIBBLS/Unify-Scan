@@ -693,8 +693,8 @@
   //     Execute as: Me | Who has access: Anyone
   //  4. Copy the deployment URL and paste below
   // ============================================================
-  const SHEETS_WEBHOOK_URL = "PASTE_YOUR_EXEC_URL_HERE";
-  const SHEETS_ENABLED = SHEETS_WEBHOOK_URL !== "PASTE_YOUR_EXEC_URL_HERE"
+  const SHEETS_WEBHOOK_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+  const SHEETS_ENABLED = SHEETS_WEBHOOK_URL !== "PASTE_YOUR_APPS_SCRIPT_URL_HERE"
                       && SHEETS_WEBHOOK_URL.startsWith("https://");
 
   if (SHEETS_ENABLED) {
@@ -759,8 +759,7 @@
   // Get a key: https://console.anthropic.com → API Keys
   // ============================================================
   const CLAUDE_API_KEY = "PASTE YOUR API KEY";
-  const CLAUDE_OCR_ENABLED = CLAUDE_API_KEY !== "PASTE_YOUR_ANTHROPIC_API_KEY_HERE" && CLAUDE_API_KEY.startsWith("sk-");
-
+const CLAUDE_OCR_ENABLED = CLAUDE_API_KEY !== "PASTE_YOUR_ANTHROPIC_API_KEY_HERE" && CLAUDE_API_KEY.startsWith("sk-");
   async function ocrScoreFromImage(dataUrl) {
     if (!CLAUDE_OCR_ENABLED) return { score: null, confidence: 0, raw: 'API key not configured' };
     const base64 = dataUrl.split(',')[1];
@@ -969,9 +968,13 @@
     } else {
       const video = document.getElementById('camera-video');
       const canvas = document.getElementById('camera-canvas');
-      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+      // Resize down to max 900px wide — keeps file well under 200KB per page
+      const MAX_W = 900;
+      const scale = Math.min(1, MAX_W / (video.videoWidth || MAX_W));
+      canvas.width = Math.round((video.videoWidth || MAX_W) * scale);
+      canvas.height = Math.round((video.videoHeight || 1200) * scale);
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      dataUrl = canvas.toDataURL('image/jpeg', 0.5);
     }
 
     state.pendingCapture = { pageNum: state.currentPageIndex, isCover: state.currentPageIndex === 0, dataUrl };
@@ -1141,10 +1144,45 @@
         statusEl.textContent = 'Uploading to Firebase...'; progress.style.width = '55%';
         const { ref, set, serverTimestamp } = window.__firebase_refs;
         const db = window.__firebase_db;
-        // Store lightweight record (no image dataUrls — those go to Storage in prod)
-        const lightRecord = { ...record, pages: record.pages.map(p => ({ ...p, dataUrl: '' })) };
+
+        // Firebase Realtime DB silently fails writes over ~10MB.
+        // Re-compress pages if the record is large.
+        function estimateSizeKB(obj) {
+          return new Blob([JSON.stringify(obj)]).size / 1024;
+        }
+
+        let pages = record.pages;
+        console.log("Record size:", Math.round(estimateSizeKB(record)), "KB");
+        if (estimateSizeKB(record) > 3000) {
+          statusEl.textContent = 'Compressing images...';
+          pages = await Promise.all(record.pages.map(p => new Promise((resolve) => {
+            if (!p.dataUrl || !p.dataUrl.startsWith('data:image')) { resolve(p); return; }
+            const img = new Image();
+            img.onload = () => {
+              const cv = document.createElement('canvas');
+              const sc = Math.min(1, 800 / Math.max(img.width || 800, img.height || 600));
+              cv.width = Math.round((img.width || 800) * sc);
+              cv.height = Math.round((img.height || 600) * sc);
+              cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+              resolve({ ...p, dataUrl: cv.toDataURL('image/jpeg', 0.2) });
+            };
+            img.onerror = () => resolve({ ...p, dataUrl: '' });
+            img.src = p.dataUrl;
+          })));
+          statusEl.textContent = 'Uploading to Firebase...';
+        }
+
+        let uploadRec = { ...record, pages };
+        // Last resort: if still >8MB, strip images entirely
+        if (estimateSizeKB(uploadRec) > 8000) {
+          uploadRec.pages = record.pages.map(p => ({
+            index: p.index, isCover: p.isCover, label: p.label, pageNum: p.pageNum, dataUrl: ''
+          }));
+          uploadRec._imagesStripped = true;
+        }
+
         await set(ref(db, 'scanJobs/' + record.jobId), {
-          ...lightRecord,
+          ...uploadRec,
           uploadedAt: serverTimestamp(),
         });
         firebaseOk = true;
@@ -1280,7 +1318,7 @@
   // ============================================================
   function generateDemoPage(pageIndex) {
     const canvas = document.createElement('canvas');
-    canvas.width = 600; canvas.height = 848;
+    canvas.width = 480; canvas.height = 640;
     const ctx = canvas.getContext('2d');
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
     grad.addColorStop(0, '#fdfcf8'); grad.addColorStop(1, '#f5f1e8');
@@ -1319,7 +1357,7 @@
       ctx.save(); ctx.translate(canvas.width - 100, canvas.height - 100); ctx.rotate(-0.08);
       ctx.font = 'italic bold 20px Georgia, serif'; ctx.fillText('15/20', 0, 0); ctx.restore();
     }
-    return canvas.toDataURL('image/jpeg', 0.72);
+    return canvas.toDataURL('image/jpeg', 0.4);
   }
 
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopCamera(); });
